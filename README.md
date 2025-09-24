@@ -1,5 +1,5 @@
 # Operating-System
-Discrição em processo.....
+Descrição em processo.....
 
 <img align="right" src="https://i.pinimg.com/736x/70/4f/a8/704fa81438788a4cb8c6c84a576aaf9f.jpg" alt="Imagem 2" style="border-radius: 10px; margin: 10px;" width="80">
 <img align="right" src="https://i.pinimg.com/736x/2f/e4/64/2fe4642b827029df8e299f5998117dc2.jpg" alt="Imagem 3" style="border-radius: 10px; margin: 10px;" width="80">
