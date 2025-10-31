@@ -46,10 +46,27 @@ public abstract class Instrucao {
     public int getComprimento() { 
         return comprimento; 
     }
+    
+    public void setFlags(byte[] bytes) {
+        
+        // Bytes[0] -> Opcode (6 bits) + n + i (2 bits)
+        
+        flags.put("n", (bytes[0] & 0b00000010) != 0); // Bit 'n'
+        flags.put("i", (bytes[0] & 0b00000001) != 0); // Bit 'i'
+        
+        // Bytes[1] -> x + b + p + e (4 bits) + parte do disp/addr (4 bits)
+        
+        flags.put("x", (bytes[1] & 0b10000000) != 0); // Bit 'x' 
+        flags.put("b", (bytes[1] & 0b01000000) != 0); // Bit 'b' 
+        flags.put("p", (bytes[1] & 0b00100000) != 0); // Bit 'p' 
+        flags.put("e", (bytes[1] & 0b00010000) != 0); // Bit 'e' 
+    
+    }
+        
     public Map<String,Boolean> getFlags() { 
         return this.flags; 
     }
-
+    
     public int getFormato(byte[] bytes) {
         
         setFlags(bytes);
@@ -68,22 +85,108 @@ public abstract class Instrucao {
 
         return Integer.parseInt(formato);  // Formato = 1 ou 2
         
-    }
+    }    
     
-    public void setFlags(byte[] bytes) {
+    public int[] getRegistradores(byte[] bytes) { // Formato 2
         
-        // Bytes[0] -> Opcode (6 bits) + n + i (2 bits)
+        int[] registradores = new int[2];
+
+        registradores[0] = (int)(bytes[1] & 0b11110000) >>> 4; 
+        registradores[1] = (int)(bytes[1] & 0b00001111);
+
+        return registradores;
         
-        flags.put("n", (bytes[0] & 0b00000010) != 0); // Bit 'n'
-        flags.put("i", (bytes[0] & 0b00000001) != 0); // Bit 'i'
+    }
+
+    public int getDisp(byte[] bytes) { // Formato 3
         
-        // Bytes[1] -> x + b + p + e (4 bits) + parte do disp/addr (4 bits)
+        int byte1 = (bytes[1] & 0b00001111)<<8;
+        int byte2 = bytes[2];
         
-        flags.put("x", (bytes[1] & 0b10000000) != 0); // Bit 'x' 
-        flags.put("b", (bytes[1] & 0b01000000) != 0); // Bit 'b' 
-        flags.put("p", (bytes[1] & 0b00100000) != 0); // Bit 'p' 
-        flags.put("e", (bytes[1] & 0b00010000) != 0); // Bit 'e' 
+        return byte1 | byte2;
+        
+    }
+
+    public int getDispbpe(byte[] bytes) { 
+       
+        int byte1 = (bytes[1] & 0b01111111)<<7;
+        int byte2 = bytes[2] & 0xFF;
+
+        return byte1 | byte2;
+        
+    }
+
+    public int getAddr(byte[] bytes) { // Formato 4
+       
+        int byte1 = (bytes[1] & 0b00001111) << 16;  
+        int byte2 = (bytes[2] & 0xFF) << 8;         
+        int byte3 = bytes[3] & 0xFF;                
+
+        return byte1 | byte2 | byte3;               
     
     }
 
+    public int calcularTA(Registradores registradores, Memoria memoria) { 
+       
+        int base = 0;
+        int x = 0;
+        int m = 0;
+        int tamanhom = 0;
+        int pc = registradores.getValorPC();
+        
+        setFlags(memoria.getBytes(pc, 2));
+
+        if(!(flags.get("i") || flags.get("n"))) { 
+           
+            m = getDispbpe(memoria.getBytes(pc, 3));
+            
+            tamanhom = 15;
+            
+        } else if (flags.get("e")) {
+           
+            m = getAddr(memoria.getBytes(pc, 4)); 
+            
+            tamanhom = 20;
+            
+        } else { 
+            
+            m = getDisp(memoria.getBytes(pc, 3)); 
+            
+            tamanhom = 12;
+            
+        }
+       
+        registradores.incrementarPC(getFormato(memoria.getBytes(registradores.getValorPC(), 2)));
+        
+        if(flags.get("b")) { 
+           
+            base += registradores.getRegistradorPorNome("B").getValorIntSigned();
+       
+        } else if (flags.get("p")) { 
+           
+            base += registradores.getValorPC();
+            
+            m = (int) (m << (32 - tamanhom)) >> (32 - tamanhom); 
+        
+        }
+    
+        if(flags.get("x")) { 
+            
+            x = registradores.getRegistradorPorNome("X").getValorIntSigned();
+        
+        }
+
+        if(flags.get("i") && !flags.get("n")) {             
+            
+            return m + base;                                        
+        
+        } else if (flags.get("n") && !flags.get("i")) {     
+            
+            return m + base;                                        
+        
+        }
+
+        return m+base+x;   
+       
+    }
 }
