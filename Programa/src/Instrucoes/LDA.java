@@ -4,12 +4,12 @@ import Executor.Memoria;
 import Executor.Registradores;
 import java.util.Map;
 
-public class COMP extends Instrucao {
-
-    public COMP() {
+public class LDA extends Instrucao {
+    
+    public LDA() {
         
-        super("COMP", (byte)0x28, "3/4", 3);
-   
+        super("LDA", (byte)0x00, "3/4", 3);
+        
     }
 
     @Override
@@ -17,7 +17,7 @@ public class COMP extends Instrucao {
         
         int enderecoOuValorImediato = calcularTA(registradores, memoria);
         
-        int operando = 0;
+        int operando = 0; 
         
         Map<String, Boolean> flags = getFlags();
         
@@ -30,31 +30,17 @@ public class COMP extends Instrucao {
             
         } else if (isIndireto) {
             
-            
             int enderecoReal = memoria.getWord(enderecoOuValorImediato);
             
             operando = memoria.getWord(enderecoReal);
-        
+            
         } else {
             
             operando = memoria.getWord(enderecoOuValorImediato);
         
         }
- 
-        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned();
-            
-        if (valorAcumulator == operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(0); // Igual
-       
-        } else if (valorAcumulator < operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(1); // Menor
-        
-        } else { 
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(2); // Maior
-        
-        }
+
+        registradores.getRegistradorPorNome("A").setValorInt(operando);
+    
     }
 }

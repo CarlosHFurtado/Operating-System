@@ -4,57 +4,60 @@ import Executor.Memoria;
 import Executor.Registradores;
 import java.util.Map;
 
-public class COMP extends Instrucao {
+public class TIX extends Instrucao {
 
-    public COMP() {
+    public TIX() {
         
-        super("COMP", (byte)0x28, "3/4", 3);
-   
+        super("TIX", (byte)0x2C, "3/4", 3);
+        
     }
 
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
-        
+
         int enderecoOuValorImediato = calcularTA(registradores, memoria);
         
-        int operando = 0;
-        
+        int operando = 0; 
+
         Map<String, Boolean> flags = getFlags();
         
         boolean isImediato = flags.get("i") && !flags.get("n"); 
         boolean isIndireto = flags.get("n") && !flags.get("i"); 
         
         if (isImediato) {
-            
+
             operando = enderecoOuValorImediato;
             
         } else if (isIndireto) {
-            
-            
+
             int enderecoReal = memoria.getWord(enderecoOuValorImediato);
-            
+
             operando = memoria.getWord(enderecoReal);
+            
+        } else {
+
+            operando = memoria.getWord(enderecoOuValorImediato);
+            
+        }
+
+        int valorRegistradorX = registradores.getRegistradorPorNome("X").getValorIntSigned();
         
+        valorRegistradorX += 1; 
+                
+        registradores.getRegistradorPorNome("X").setValorInt(valorRegistradorX);
+
+        if (valorRegistradorX == operando) {
+            
+            registradores.getRegistradorPorNome("SW").setValorInt(0); 
+            
+        } else if (valorRegistradorX < operando) {
+            
+            registradores.getRegistradorPorNome("SW").setValorInt(1);
+            
         } else {
             
-            operando = memoria.getWord(enderecoOuValorImediato);
-        
-        }
- 
-        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned();
+            registradores.getRegistradorPorNome("SW").setValorInt(2); 
             
-        if (valorAcumulator == operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(0); // Igual
-       
-        } else if (valorAcumulator < operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(1); // Menor
-        
-        } else { 
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(2); // Maior
-        
         }
     }
 }

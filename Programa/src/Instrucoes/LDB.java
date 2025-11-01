@@ -4,20 +4,18 @@ import Executor.Memoria;
 import Executor.Registradores;
 import java.util.Map;
 
-public class COMP extends Instrucao {
-
-    public COMP() {
+public class LDB extends Instrucao {
+    public LDB() {
         
-        super("COMP", (byte)0x28, "3/4", 3);
-   
+        super("LDB", (byte)0x68, "3/4", 3);
+        
     }
 
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
         
         int enderecoOuValorImediato = calcularTA(registradores, memoria);
-        
-        int operando = 0;
+        int operando = 0; 
         
         Map<String, Boolean> flags = getFlags();
         
@@ -25,36 +23,22 @@ public class COMP extends Instrucao {
         boolean isIndireto = flags.get("n") && !flags.get("i"); 
         
         if (isImediato) {
-            
+           
             operando = enderecoOuValorImediato;
             
         } else if (isIndireto) {
-            
-            
+                       
             int enderecoReal = memoria.getWord(enderecoOuValorImediato);
             
             operando = memoria.getWord(enderecoReal);
-        
+            
         } else {
-            
+           
             operando = memoria.getWord(enderecoOuValorImediato);
-        
+            
         }
- 
-        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned();
-            
-        if (valorAcumulator == operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(0); // Igual
        
-        } else if (valorAcumulator < operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(1); // Menor
+        registradores.getRegistradorPorNome("B").setValorInt(operando);
         
-        } else { 
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(2); // Maior
-        
-        }
     }
 }

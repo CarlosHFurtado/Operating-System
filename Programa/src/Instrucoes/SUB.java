@@ -4,12 +4,12 @@ import Executor.Memoria;
 import Executor.Registradores;
 import java.util.Map;
 
-public class COMP extends Instrucao {
+public class SUB extends Instrucao {
 
-    public COMP() {
+    public SUB() {
         
-        super("COMP", (byte)0x28, "3/4", 3);
-   
+        super("SUB", (byte)0x1C, "3/4", 3);
+        
     }
 
     @Override
@@ -25,36 +25,26 @@ public class COMP extends Instrucao {
         boolean isIndireto = flags.get("n") && !flags.get("i"); 
         
         if (isImediato) {
-            
+           
             operando = enderecoOuValorImediato;
             
         } else if (isIndireto) {
             
-            
             int enderecoReal = memoria.getWord(enderecoOuValorImediato);
             
             operando = memoria.getWord(enderecoReal);
-        
+            
         } else {
             
             operando = memoria.getWord(enderecoOuValorImediato);
-        
+            
         }
- 
-        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned();
-            
-        if (valorAcumulator == operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(0); // Igual
-       
-        } else if (valorAcumulator < operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(1); // Menor
+
+        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned(); 
+
+        int resultado = valorAcumulator - operando; 
+
+        registradores.getRegistradorPorNome("A").setValorInt(resultado); 
         
-        } else { 
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(2); // Maior
-        
-        }
     }
 }

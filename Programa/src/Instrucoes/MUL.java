@@ -4,12 +4,12 @@ import Executor.Memoria;
 import Executor.Registradores;
 import java.util.Map;
 
-public class COMP extends Instrucao {
+public class MUL extends Instrucao {
 
-    public COMP() {
+    public MUL() {
         
-        super("COMP", (byte)0x28, "3/4", 3);
-   
+        super("MUL", (byte)0x20, "3/4", 3);
+        
     }
 
     @Override
@@ -17,7 +17,7 @@ public class COMP extends Instrucao {
         
         int enderecoOuValorImediato = calcularTA(registradores, memoria);
         
-        int operando = 0;
+        int operando = 0; 
         
         Map<String, Boolean> flags = getFlags();
         
@@ -29,32 +29,30 @@ public class COMP extends Instrucao {
             operando = enderecoOuValorImediato;
             
         } else if (isIndireto) {
-            
-            
+          
             int enderecoReal = memoria.getWord(enderecoOuValorImediato);
             
             operando = memoria.getWord(enderecoReal);
-        
+            
         } else {
-            
+      
             operando = memoria.getWord(enderecoOuValorImediato);
-        
+            
         }
- 
-        int valorAcumulator = registradores.getRegistradorPorNome("A").getValorIntSigned();
-            
-        if (valorAcumulator == operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(0); // Igual
-       
-        } else if (valorAcumulator < operando) {
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(1); // Menor
+
+        long valorA_long = registradores.getRegistradorPorNome("A").getValorIntSigned(); 
         
-        } else { 
-            
-            registradores.getRegistradorPorNome("SW").setValorInt(2); // Maior
+        long operando_long = operando; 
         
-        }
+        long resultado_long = valorA_long * operando_long; 
+
+        int lsw = (int) (resultado_long & 0xFFFFFF); 
+
+        int msw = (int) (resultado_long >> 24); 
+
+        registradores.getRegistradorPorNome("A").setValorInt(msw); 
+        
+        registradores.getRegistradorPorNome("L").setValorInt(lsw); 
+        
     }
 }
