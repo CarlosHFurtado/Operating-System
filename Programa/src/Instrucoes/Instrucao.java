@@ -1,7 +1,5 @@
 package Instrucoes;
 
-// @author Dienifer Ledebuhr
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,183 +8,131 @@ import Executor.Registradores;
 
 public abstract class Instrucao {
     
-    // --- ATRIBUTOS ---
-    
     private final String nome;
     private final byte opcode;
     private final String formato;
-    private final int comprimento;
-    
-    Map<String, Boolean> flags = new HashMap<>();
-    
-    // --- CONSTRUTOR ---
-    
-    Instrucao(String nome, byte opcode, String formato, int comprimento) {
+    private final int length;
+    private Map<String, Boolean> flags = new HashMap<>();
+
+    Instrucao(String nome, byte opcode, String formato, int length) {
+        
         this.nome = nome;
         this.opcode = opcode;
         this.formato = formato;
-        this.comprimento = comprimento;
+        this.length = length;
+        
     }
-    
-    // --- MÉTODO PRINCIPAL ---
-    
+
     public abstract void executar(Memoria memoria, Registradores registradores);
 
-    // --- MÉTODOS GETTERS ---
-    
-    public String getNome() { 
-        return nome; 
-    }
-    public byte getOpcode() { 
-        return opcode; 
-    }
-    public String getFormato() { 
-        return formato; 
-    }
-    public int getComprimento() { 
-        return comprimento; 
-    }
-    
+    public String getNome() { return nome; }
+    public byte getOpcode() { return opcode; }
+    public String getFormato() { return formato; }
+    public int getLength() { return length; }
+    public Map<String, Boolean> getFlags() { return flags; }
+
     public void setFlags(byte[] bytes) {
         
-        // Bytes[0] -> Opcode (6 bits) + n + i (2 bits)
+        flags.put("n", (bytes[0] & 0b00000010) != 0); 
+        flags.put("i", (bytes[0] & 0b00000001) != 0);
+        flags.put("x", (bytes[1] & 0b10000000) != 0);
+        flags.put("b", (bytes[1] & 0b01000000) != 0);
+        flags.put("p", (bytes[1] & 0b00100000) != 0);
+        flags.put("e", (bytes[1] & 0b00010000) != 0);
         
-        flags.put("n", (bytes[0] & 0b00000010) != 0); // Bit 'n'
-        flags.put("i", (bytes[0] & 0b00000001) != 0); // Bit 'i'
-        
-        // Bytes[1] -> x + b + p + e (4 bits) + parte do disp/addr (4 bits)
-        
-        flags.put("x", (bytes[1] & 0b10000000) != 0); // Bit 'x' 
-        flags.put("b", (bytes[1] & 0b01000000) != 0); // Bit 'b' 
-        flags.put("p", (bytes[1] & 0b00100000) != 0); // Bit 'p' 
-        flags.put("e", (bytes[1] & 0b00010000) != 0); // Bit 'e' 
-    
     }
-        
-    public Map<String,Boolean> getFlags() { 
-        return this.flags; 
-    }
-    
-    public int getFormato(byte[] bytes) {
-        
+
+    public int getFormatoInstrucao(byte[] bytes) {
         setFlags(bytes);
 
-        if(formato.contains("3/4")) { // Se 3/4
+       
+        if(formato.equals("1") || formato.equals("2")) {
             
-            if (flags.get("e")) { // Se e = 1
-                
-                return 4; // Formato = 4
-                
-            } else { // Se e = 0
-                 
-                return 3; // Formato = 3
-            }
-        }
-
-        return Integer.parseInt(formato);  // Formato = 1 ou 2
+            return Integer.parseInt(formato);
         
-    }    
-    
-    public int[] getRegistradores(byte[] bytes) { // Formato 2
+        }
+        
+        return flags.get("e") ? 4 : 3;
+        
+    }
+
+    public int[] getRegistradores(byte[] bytes) {
         
         int[] registradores = new int[2];
-
-        registradores[0] = (int)(bytes[1] & 0b11110000) >>> 4; 
-        registradores[1] = (int)(bytes[1] & 0b00001111);
-
+        
+        registradores[0] = (bytes[1] & 0b11110000) >>> 4;
+        registradores[1] = (bytes[1] & 0b00001111);
+        
         return registradores;
         
     }
 
-    public int getDisp(byte[] bytes) { // Formato 3
-        
-        int byte1 = (bytes[1] & 0b00001111)<<8;
-        int byte2 = bytes[2];
-        
-        return byte1 | byte2;
-        
+    public int getDisp(byte[] bytes) {
+        return ((bytes[1] & 0x0F) << 8) | (bytes[2] & 0xFF);
     }
 
-    public int getDispbpe(byte[] bytes) { 
-       
-        int byte1 = (bytes[1] & 0b01111111)<<7;
-        int byte2 = bytes[2] & 0xFF;
-
-        return byte1 | byte2;
-        
+    public int getAddr(byte[] bytes) {
+        return ((bytes[1] & 0x0F) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
     }
 
-    public int getAddr(byte[] bytes) { // Formato 4
-       
-        int byte1 = (bytes[1] & 0b00001111) << 16;  
-        int byte2 = (bytes[2] & 0xFF) << 8;         
-        int byte3 = bytes[3] & 0xFF;                
+    public int calcularEnderecoEfetivo(byte[] bytesInstrucao, Registradores registradores, int pcAtual) {
+        
+        setFlags(bytesInstrucao);
+        
+        int endereco = 0;
+        
+        boolean formato4 = flags.get("e");
+        
+        if (formato4) {
+            
+            endereco = getAddr(bytesInstrucao);
+            
+        } else {           
+            
+            endereco = getDisp(bytesInstrucao);
 
-        return byte1 | byte2 | byte3;               
+            if ((endereco & 0x800) != 0) {
+                
+                endereco |= 0xFFFFF000;
+                
+            }
+        }
+        
+        if (flags.get("b")) {
+            
+            endereco += registradores.getValor("B");
+            
+        } else if (flags.get("p")) {
+            
+            endereco += pcAtual;
+            
+        }
+        
+        if (flags.get("x")) {
+            
+            endereco += registradores.getValor("X");
+        
+        }
+        
+        return endereco;
+    }
     
-    }
-
-    public int calcularTA(Registradores registradores, Memoria memoria) { 
-       
-        int base = 0;
-        int x = 0;
-        int m = 0;
-        int tamanhom = 0;
-        int pc = registradores.getValor("PC");
+    public int obterOperando(Memoria memoria, Registradores registradores, int enderecoEfetivo) {
         
-        setFlags(memoria.getBytes(pc, 2));
-
-        if(!(flags.get("i") || flags.get("n"))) { 
-           
-            m = getDispbpe(memoria.getBytes(pc, 3));
+        if (flags.get("i") && !flags.get("n")) {
             
-            tamanhom = 15;
-            
-        } else if (flags.get("e")) {
-           
-            m = getAddr(memoria.getBytes(pc, 4)); 
-            
-            tamanhom = 20;
-            
-        } else { 
-            
-            m = getDisp(memoria.getBytes(pc, 3)); 
-            
-            tamanhom = 12;
+            return enderecoEfetivo;
             
         }
-
-        registradores.incrementar("PC", getFormato(memoria.getBytes(registradores.getValor("PC"), 2)));
         
-        if(flags.get("b")) { 
-           
-            base += registradores.getValor("B");
-       
-        } else if (flags.get("p")) { 
-           
-            base += registradores.getValor("PC");
+        if (flags.get("n") && !flags.get("i")) {
             
-            m = (int) (m << (32 - tamanhom)) >> (32 - tamanhom); 
-        
+            int enderecoIndireto = memoria.getWord(enderecoEfetivo);
+            return memoria.getWord(enderecoIndireto);
+            
         }
-    
-        if(flags.get("x")) { 
-            
-            x = registradores.getValor("X");
         
-        }
-
-        if(flags.get("i") && !flags.get("n")) {             
-            
-            return m + base;                                        
+        return memoria.getWord(enderecoEfetivo);
         
-        } else if (flags.get("n") && !flags.get("i")) {     
-            
-            return m + base;                                        
-        
-        }
-
-        return m+base+x;   
-       
     }
 }
