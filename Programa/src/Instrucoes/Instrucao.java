@@ -132,7 +132,7 @@ public abstract class Instrucao {
         int x = 0;
         int m = 0;
         int tamanhom = 0;
-        int pc = registradores.getValorPC();
+        int pc = registradores.getValor("PC");
         
         setFlags(memoria.getBytes(pc, 2));
 
@@ -155,16 +155,16 @@ public abstract class Instrucao {
             tamanhom = 12;
             
         }
-       
-        registradores.incrementarPC(getFormato(memoria.getBytes(registradores.getValorPC(), 2)));
+
+        registradores.incrementar("PC", getFormato(memoria.getBytes(registradores.getValor("PC"), 2)));
         
         if(flags.get("b")) { 
            
-            base += registradores.getRegistradorPorNome("B").getValorIntSigned();
+            base += registradores.getValor("B");
        
         } else if (flags.get("p")) { 
            
-            base += registradores.getValorPC();
+            base += registradores.getValor("PC");
             
             m = (int) (m << (32 - tamanhom)) >> (32 - tamanhom); 
         
@@ -172,7 +172,7 @@ public abstract class Instrucao {
     
         if(flags.get("x")) { 
             
-            x = registradores.getRegistradorPorNome("X").getValorIntSigned();
+            x = registradores.getValor("X");
         
         }
 
