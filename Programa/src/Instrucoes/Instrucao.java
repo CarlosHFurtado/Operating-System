@@ -25,11 +25,25 @@ public abstract class Instrucao {
 
     public abstract void executar(Memoria memoria, Registradores registradores);
 
-    public String getNome() { return nome; }
-    public byte getOpcode() { return opcode; }
-    public String getFormato() { return formato; }
-    public int getLength() { return length; }
-    public Map<String, Boolean> getFlags() { return flags; }
+    public String getNome() { 
+        return nome; 
+    }
+    
+    public byte getOpcode() { 
+        return opcode; 
+    }
+    
+    public String getFormato() { 
+        return formato; 
+    }
+    
+    public int getLength() { 
+        return length; 
+    }
+    
+    public Map<String, Boolean> getFlags() { 
+        return flags; 
+    }
 
     public void setFlags(byte[] bytes) {
         
