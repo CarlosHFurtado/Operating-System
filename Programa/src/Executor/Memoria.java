@@ -1,4 +1,4 @@
-package Executar;
+package Executor;
 
 import java.util.Arrays;
 public class Memoria {
