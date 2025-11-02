@@ -22,6 +22,7 @@ public class PainelLog extends JPanel {
             new Font("Segoe UI", Font.BOLD, 14),
             COR_DETALHE
         ));
+        
         setBackground(COR_FUNDO_PAINEL);
 
         areaLog = new JTextArea();
@@ -45,6 +46,15 @@ public class PainelLog extends JPanel {
         areaLog.append("> " + msg + "\n");
         areaLog.setCaretPosition(areaLog.getDocument().getLength());
     }
+    
+    public void adicionarBytes(String msg, byte[] bytes) {
+    StringBuilder sb = new StringBuilder(msg + ": ");
+    for (byte b : bytes) {
+        sb.append(String.format("%02X ", b));
+    }
+    areaLog.append(sb.toString().trim() + "\n");
+    areaLog.setCaretPosition(areaLog.getDocument().getLength());
+}
 
     public void limpar() {
         areaLog.setText("");

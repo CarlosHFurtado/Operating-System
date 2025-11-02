@@ -45,29 +45,31 @@ public abstract class Instrucao {
         return flags; 
     }
 
+public int getFormatoInstrucao(byte[] bytes) {
+    System.err.println("DEBUG: bytes.length = " + (bytes == null ? "null" : bytes.length));
+    if (bytes == null || bytes.length < 2) {
+        throw new IllegalArgumentException("Instrução inválida: precisa de pelo menos 2 bytes. Tamanho atual: " + (bytes == null ? 0 : bytes.length));
+    }
+    setFlags(bytes);
+
+    if (formato.equals("1") || formato.equals("2")) {
+        return Integer.parseInt(formato);
+    }
+
+    return flags.get("e") ? 4 : 3;
+}
+
     public void setFlags(byte[] bytes) {
-        
-        flags.put("n", (bytes[0] & 0b00000010) != 0); 
+        if (bytes == null || bytes.length < 2) {
+            throw new IllegalArgumentException("Bytes insuficientes para definir flags. Precisa de 2+ bytes.");
+        }
+
+        flags.put("n", (bytes[0] & 0b00000010) != 0);
         flags.put("i", (bytes[0] & 0b00000001) != 0);
         flags.put("x", (bytes[1] & 0b10000000) != 0);
         flags.put("b", (bytes[1] & 0b01000000) != 0);
         flags.put("p", (bytes[1] & 0b00100000) != 0);
         flags.put("e", (bytes[1] & 0b00010000) != 0);
-        
-    }
-
-    public int getFormatoInstrucao(byte[] bytes) {
-        setFlags(bytes);
-
-       
-        if(formato.equals("1") || formato.equals("2")) {
-            
-            return Integer.parseInt(formato);
-        
-        }
-        
-        return flags.get("e") ? 4 : 3;
-        
     }
 
     public int[] getRegistradores(byte[] bytes) {

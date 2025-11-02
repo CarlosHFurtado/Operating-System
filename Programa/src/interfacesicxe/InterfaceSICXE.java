@@ -4,6 +4,7 @@ import Executor.Executor;
 import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -54,21 +55,55 @@ public class InterfaceSICXE extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnSair);
 
-        btnCarregar.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("Selecione o arquivo binário do programa");
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                try {
-                    String conteudo = Files.readString(chooser.getSelectedFile().toPath());
-                    executor.setPrograma(conteudo);
-                    executor.getRegistradores().setValor("PC", 0);
-                    atualizarTodosPaineis();
-                    painelLog.adicionarMensagem("Programa carregado com sucesso.");
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, "Erro ao carregar programa: " + ex.getMessage());
+btnCarregar.addActionListener(e -> {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setDialogTitle("Selecione o arquivo de programa (.txt com hex)");
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        try {
+            List<String> lines = Files.readAllLines(chooser.getSelectedFile().toPath());
+            executor.limpar();
+
+            int endereco = 0;
+            int memoriaTamanho = executor.getMemoria().getMem().length;
+
+            for (String linha : lines) {
+                linha = linha.trim().toUpperCase();
+                if (linha.isEmpty() || linha.startsWith(";")) continue;
+
+                if (linha.length() % 2 != 0) {
+                    JOptionPane.showMessageDialog(this, "Linha inválida: " + linha);
+                    return;
+                }
+
+                for (int i = 0; i < linha.length(); i += 2) {
+                    if (endereco >= memoriaTamanho) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Memória cheia! Programa truncado a partir do byte " + endereco + ".");
+                        break;
+                    }
+
+                    String hexByte = linha.substring(i, i + 2);
+                    int valor = Integer.parseUnsignedInt(hexByte, 16);
+                    executor.getMemoria().setByte(endereco++, (byte) valor);
                 }
             }
-        });
+
+            // Forçar PC para 0
+            executor.getRegistradores().setValor("PC", 0);
+            executor.getRegistradores().setValor("A", 0);
+            executor.getRegistradores().setValor("SW", 0);
+
+            atualizarTodosPaineis();
+            painelLog.adicionarMensagem("Programa carregado com sucesso.");
+            painelLog.adicionarMensagem("Bytes escritos: " + endereco);
+            painelLog.adicionarMensagem("PC definido para 0.");
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+});
 
         btnResetar.addActionListener(e -> {
             executor.limpar();

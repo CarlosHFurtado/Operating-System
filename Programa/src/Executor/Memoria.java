@@ -1,11 +1,12 @@
 package Executor;
 
 import java.util.Arrays;
+
 public class Memoria {
     private byte[] memoria;
     private int tamanho;
 
-    public Memoria( int tamanho ) {
+    public Memoria(int tamanho) {
         if (tamanho <= 0) {
             throw new IllegalArgumentException("tamanho deve ser > 0");
         }
@@ -18,52 +19,54 @@ public class Memoria {
     }
     
     public void limpaMem() {
-        Arrays.fill( memoria,( byte ) 0 );
+        Arrays.fill(memoria, (byte) 0);
     }
     
-    public byte getByte( int pos ){
-        return ( byte )( ( memoria[pos] ) & 0xFF );
+    public byte getByte(int pos) {
+        if (pos < 0 || pos >= tamanho) {
+            return 0;
+        }
+        return (byte) (memoria[pos] & 0xFF);
     }
         
-    public byte[] getBytes(  int qtd, int pos ) {
-        if (qtd < 0) {
-            throw new IllegalArgumentException("quantidade deve ser >= 0");
+public byte[] getBytes(int qtd, int pos) {
+    System.err.println("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
+    if (qtd <= 0) {
+        return new byte[0];
+    }
+    byte[] bytes = new byte[qtd];
+    for (int i = 0; i < qtd; i++) {
+        if (pos + i < tamanho) {
+            bytes[i] = getByte(pos + i);
+        } else {
+            bytes[i] = 0;
         }
-        byte[] bytes = new byte[qtd];
-
-        for( int i = 0; i < qtd && pos+i <= tamanho; i++ ) {
-            bytes[i] = getByte( pos+i );
+        System.err.println("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
+    }
+    return bytes;
+}
+    
+    public void setByte(int pos, byte b) {
+        if (pos >= 0 && pos < tamanho) {
+            memoria[pos] = b;
         }
+    }
 
-        return bytes;
+    public void setByteInt(int pos, int valor) {
+        setByte(pos, (byte) (valor & 0xFF));
     }
     
-    public byte getOpcode( int pos ) {
-        byte byte1 = getByte( pos );
-
-        return ( byte )( ( byte1 & 0b11111100 ) );
+    public void setWord(int pos, int valor) {
+        setByteInt(pos, valor >>> 16);
+        setByteInt(pos + 1, valor >>> 8);
+        setByteInt(pos + 2, valor);
     }
 
-    public void setByte( int pos, byte b ) {
-        memoria[pos] = b;
+    public int getWord(int pos) {
+        if (pos + 2 >= tamanho) return 0;
+        int MSB = (getByte(pos) & 0xFF) << 16;
+        int MID = (getByte(pos + 1) & 0xFF) << 8;
+        int LSB = (getByte(pos + 2) & 0xFF);
+        return MSB | MID | LSB;
     }
-
-    public void setByteInt( int pos, int valor ) {
-        memoria[pos] = ( byte )( valor & 0xFF );
-    }
-    
-    public void setWord( int pos, int valor ) {
-        setByteInt( pos, valor >>> 16 );
-        setByteInt( pos + 1, valor >>> 8 );
-        setByteInt( pos + 2, valor );
-    }
-
-    public int getWord( int pos ) {
-        int MID = getByte( pos + 1 ) << 8; 
-        int LSB = getByte( pos + 2 );
-        int MSB = getByte( pos ) << 16;
-
-        return MID + LSB + MSB;
-    }
-
 }
