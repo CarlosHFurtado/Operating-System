@@ -45,7 +45,7 @@ public class Registradores {
             if (r.getValor().length == 3) {
                 r.setValor(new byte[3]);
             } else {
-                r.setValor(new byte[r.getValor().length]); // F tem 6 bytes
+                r.setValor(new byte[r.getValor().length]);
             }
         }
     }

@@ -16,7 +16,7 @@ public class ADDR extends Instrucao {
         
         int pcAtual = registradores.getValor("PC");
         
-        byte[] bytesInstrucao = memoria.getBytes(pcAtual, 2);
+        byte[] bytesInstrucao = memoria.getBytes(2, pcAtual);
         
         int[] registradoresID = getRegistradores(bytesInstrucao);
         int r1 = registradoresID[0]; // Registrador fonte

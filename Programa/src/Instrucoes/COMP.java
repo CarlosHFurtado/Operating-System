@@ -12,23 +12,17 @@ public class COMP extends Instrucao {
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
         
-        // 1. Obter PC atual
         int pcAtual = registradores.getValor("PC");
         
-        // 2. Determinar formato e ler bytes
-        int formato = getFormatoInstrucao(memoria.getBytes(pcAtual, 2));
-        byte[] bytesInstrucao = memoria.getBytes(pcAtual, formato);
+        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
+        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
         
-        // 3. Calcular endereço efetivo
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         
-        // 4. Obter operando (usa método da classe base)
         int operando = obterOperando(memoria, registradores, enderecoEfetivo);
         
-        // 5. Obter valor do acumulador
-        int valorAcumulador = registradores.getValor("A"); // ✅ MÉTODO CORRETO
+        int valorAcumulador = registradores.getValor("A"); 
         
-        // 6. Realizar comparação e atualizar SW (Status Word)
         int codigoCondicional;
         if (valorAcumulador == operando) {
             codigoCondicional = 0; // Igual
@@ -38,13 +32,10 @@ public class COMP extends Instrucao {
             codigoCondicional = 2; // Maior
         }
         
-        // 7. Atualizar código condicional no registrador SW
-        // O SW tem vários campos, assumindo que CC são os bits menos significativos
         int swAtual = registradores.getValor("SW");
-        swAtual = (swAtual & 0xFFFF00) | codigoCondicional; // Preserva outros bits, atualiza CC
+        swAtual = (swAtual & 0xFFFF00) | codigoCondicional; 
         registradores.setValor("SW", swAtual);
         
-        // 8. Atualizar PC
         registradores.incrementar("PC", formato);
     }
 }

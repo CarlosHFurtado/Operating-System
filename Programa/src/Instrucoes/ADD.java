@@ -16,9 +16,9 @@ public class ADD extends Instrucao {
         
         int pcAtual = registradores.getValor("PC");
 
-        int formato = getFormatoInstrucao(memoria.getBytes(pcAtual, 2));
+        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
         
-        byte[] bytesInstrucao = memoria.getBytes(pcAtual, formato);
+        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
            
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         

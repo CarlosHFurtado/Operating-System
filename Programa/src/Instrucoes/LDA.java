@@ -12,23 +12,17 @@ public class LDA extends Instrucao {
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
         
-        // 1. Obter PC atual
         int pcAtual = registradores.getValor("PC");
         
-        // 2. Determinar formato e ler bytes
-        int formato = getFormatoInstrucao(memoria.getBytes(pcAtual, 2));
-        byte[] bytesInstrucao = memoria.getBytes(pcAtual, formato);
+        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
+        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
         
-        // 3. Calcular endereço efetivo
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         
-        // 4. Obter operando (usa método da classe base)
         int operando = obterOperando(memoria, registradores, enderecoEfetivo);
         
-        // 5. Carregar no acumulador A
-        registradores.setValor("A", operando); // ✅ MÉTODO CORRETO
+        registradores.setValor("A", operando); 
         
-        // 6. Atualizar PC
         registradores.incrementar("PC", formato);
     
     }

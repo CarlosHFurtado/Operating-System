@@ -13,13 +13,11 @@ public class STA extends Instrucao {
     public void executar(Memoria memoria, Registradores registradores) {
         
         int pcAtual = registradores.getValor("PC");
-        int formato = getFormatoInstrucao(memoria.getBytes(pcAtual, 2));
-        byte[] bytesInstrucao = memoria.getBytes(pcAtual, formato);
+        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
+        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
         
-        // calcularEnderecoEfetivo já chama setFlags() internamente
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         
-        // AGORA as flags estão disponíveis via getFlags()
         boolean isImediato = getFlags().get("i") && !getFlags().get("n");
         boolean isIndireto = getFlags().get("n") && !getFlags().get("i");
         

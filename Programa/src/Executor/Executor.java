@@ -23,7 +23,6 @@ public class Executor {
         output = -1;
     }
 
-    // REMOVIDO: setPrograma(String) — não é mais usado
 
 public void executarPrograma() {
     int pc = registradores.getValor("PC");
