@@ -17,8 +17,6 @@ public class Registradores {
         registradores.put("B", new Registrador("B", 3));
         registradores.put("S", new Registrador("S", 4));
         registradores.put("T", new Registrador("T", 5));
-        // F de 48 bits
-        registradores.put("F", new Registrador("F", 6, new byte[6]));
         // PC e SW de 24 bits
         registradores.put("PC", new Registrador("PC", 8));
         registradores.put("SW", new Registrador("SW", 9));
