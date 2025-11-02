@@ -1,11 +1,15 @@
 package interfacesicxe;
 
+import Executor.Executor;
 import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class InterfaceSICXE extends JFrame {
 
+    private Executor executor;
     private PainelControle painelControle;
     private PainelLog painelLog;
     private PainelMemoria painelMemoria;
@@ -13,67 +17,91 @@ public class InterfaceSICXE extends JFrame {
 
     public InterfaceSICXE() {
         super("Simulador SIC/XE - Interface Visual");
+        this.executor = new Executor();
+
         FlatLightLaf.setup();
         configurarJanela();
         criarComponentes();
     }
 
-private void configurarJanela() {
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setLayout(new BorderLayout(10, 10));
-    setSize(1100, 700);
-    setLocationRelativeTo(null);
-    getContentPane().setBackground(new Color(63, 84, 114)); 
-}
+    private void configurarJanela() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        setSize(1100, 700);
+        setLocationRelativeTo(null);
+        getContentPane().setBackground(new Color(63, 84, 114));
+    }
 
-private void criarComponentes() {
-    // Criar painéis
-    painelControle = new PainelControle();
-    painelLog = new PainelLog();
-    painelMemoria = new PainelMemoria();
-    painelRegistradores = new PainelRegistradores();
+    private void criarComponentes() {
+        painelControle = new PainelControle(executor, this);
+        painelLog = new PainelLog();
+        painelMemoria = new PainelMemoria(executor);
+        painelRegistradores = new PainelRegistradores(executor);
 
-    // Barra de ferramentas (opcional)
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    toolBar.setBackground(new Color(240, 245, 255));
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+        toolBar.setBackground(new Color(240, 245, 255));
 
-    JButton btnCarregar = new JButton("📁 Carregar Programa");
-    JButton btnResetar = new JButton("🔄 Resetar");
-    JButton btnSair = new JButton("🚪 Sair");
+        JButton btnCarregar = new JButton("📁 Carregar Programa");
+        JButton btnResetar = new JButton("🔄 Resetar");
+        JButton btnEditar = new JButton("✏️ Editar Manualmente");
+        JButton btnSair = new JButton("🚪 Sair");
 
-    toolBar.add(btnCarregar);
-    toolBar.add(btnResetar);
-    toolBar.addSeparator();
-    toolBar.add(btnSair);
+        toolBar.add(btnCarregar);
+        toolBar.add(btnResetar);
+        toolBar.addSeparator();
+        toolBar.add(btnEditar);
+        toolBar.addSeparator();
+        toolBar.add(btnSair);
 
-    // Eventos (exemplo simples)
-    btnCarregar.addActionListener(e -> JOptionPane.showMessageDialog(this, "Função de carregar programa ainda não implementada."));
-    btnResetar.addActionListener(e -> {
-        // Aqui você chama métodos de reset dos painéis
-        painelMemoria.resetar();
-        painelRegistradores.resetar();
-        painelLog.limpar();
-        JOptionPane.showMessageDialog(this, "Simulador resetado.");
-    });
-    btnSair.addActionListener(e -> System.exit(0));
+        btnCarregar.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Selecione o arquivo binário do programa");
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    String conteudo = Files.readString(chooser.getSelectedFile().toPath());
+                    executor.setPrograma(conteudo);
+                    executor.getRegistradores().setValor("PC", 0);
+                    atualizarTodosPaineis();
+                    painelLog.adicionarMensagem("Programa carregado com sucesso.");
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao carregar programa: " + ex.getMessage());
+                }
+            }
+        });
 
-    // Painel central: memória + log
-    JPanel painelCentral = new JPanel(new GridLayout(1, 2, 10, 10));
-    painelCentral.setBorder(BorderFactory.createTitledBorder("Área de Trabalho"));
-    painelCentral.add(painelMemoria);
-    painelCentral.add(painelLog);
+        btnResetar.addActionListener(e -> {
+            executor.limpar();
+            atualizarTodosPaineis();
+            painelLog.adicionarMensagem("Simulador resetado.");
+        });
 
-    // Painel lateral: registradores + controle
-    JPanel painelLateral = new JPanel(new BorderLayout(10, 10));
-    painelLateral.setBorder(BorderFactory.createTitledBorder("Controles"));
+        btnEditar.addActionListener(e -> {
+            painelMemoria.alternarModoEdicao();
+            painelRegistradores.alternarModoEdicao();
+            boolean modoEdicao = painelMemoria.isModoEdicao();
+            btnEditar.setText(modoEdicao ? "✅ Salvar Edições" : "✏️ Editar Manualmente");
+        });
 
-    painelLateral.add(painelRegistradores, BorderLayout.CENTER);
-    painelLateral.add(painelControle, BorderLayout.SOUTH);
+        btnSair.addActionListener(e -> System.exit(0));
 
-    // Adicionar tudo à janela
-    add(toolBar, BorderLayout.NORTH);
-    add(painelCentral, BorderLayout.CENTER);
-    add(painelLateral, BorderLayout.EAST);
-}
+        JPanel painelCentral = new JPanel(new GridLayout(1, 2, 10, 10));
+        painelCentral.setBorder(BorderFactory.createTitledBorder("Área de Trabalho"));
+        painelCentral.add(painelMemoria);
+        painelCentral.add(painelLog);
+
+        JPanel painelLateral = new JPanel(new BorderLayout(10, 10));
+        painelLateral.setBorder(BorderFactory.createTitledBorder("Controles"));
+        painelLateral.add(painelRegistradores, BorderLayout.CENTER);
+        painelLateral.add(painelControle, BorderLayout.SOUTH);
+
+        add(toolBar, BorderLayout.NORTH);
+        add(painelCentral, BorderLayout.CENTER);
+        add(painelLateral, BorderLayout.EAST);
+    }
+
+    public void atualizarTodosPaineis() {
+        painelMemoria.atualizar();
+        painelRegistradores.atualizar();
+    }
 }
