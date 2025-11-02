@@ -16,6 +16,11 @@ public class TabelaOpcodes {
         
         catalogoInstrucoes.put((byte)0x18, new ADD  ());
         catalogoInstrucoes.put((byte)0x90, new ADDR ());
+        catalogoInstrucoes.put((byte)0x28, new COMP ());
+        catalogoInstrucoes.put((byte)0x30, new JEQ  ());
+        catalogoInstrucoes.put((byte)0x0,  new LDA  ());
+        catalogoInstrucoes.put((byte)0x0C, new STA   ());
+        
    /*   catalogoInstrucoes.put((byte)0x40, new AND  ());
         
         catalogoInstrucoes.put((byte)0x4,  new CLEAR());
