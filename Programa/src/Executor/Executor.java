@@ -36,19 +36,18 @@ public class Executor {
 
         int posMem = 0;
 
-        StringBuilder binaryString = new StringBuilder();
+        StringBuilder hexString = new StringBuilder();
 
         String[] lines = programaObjeto.split("\\r?\\n");
 
         for (String l : lines) {
-            binaryString.append(l.trim());
+            hexString.append(l.trim());
         }
+    
+        for (int i = 0; i < hexString.length(); i += 2) {
+            String pedaco = hexString.substring(i, Math.min(i + 2, hexString.length()));
 
-        // Lê de 8 em 8 caracteres
-        for (int i = 0; i < binaryString.length(); i += 8) {
-            String pedaco = binaryString.substring(i, Math.min(i + 8, binaryString.length()));
-
-            byte pedacoByte = (byte) Integer.parseInt(pedaco, 2);
+            byte pedacoByte = (byte) Integer.parseInt(pedaco, 16);
 
             memoria.setByte(posMem++, pedacoByte);
         }
