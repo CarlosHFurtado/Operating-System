@@ -19,6 +19,7 @@ public class InterfaceSICXE extends JFrame {
     public InterfaceSICXE() {
         super("Simulador SIC/XE - Interface Visual");
         this.executor = new Executor();
+        this.executor.setPainelLog(painelLog);
 
         FlatLightLaf.setup();
         configurarJanela();
@@ -34,8 +35,11 @@ public class InterfaceSICXE extends JFrame {
     }
 
     private void criarComponentes() {
-        painelControle = new PainelControle(executor, this);
         painelLog = new PainelLog();
+        this.executor = new Executor();
+        this.executor.setPainelLog(painelLog);
+        
+        painelControle = new PainelControle(executor, this);
         painelMemoria = new PainelMemoria(executor);
         painelRegistradores = new PainelRegistradores(executor);
 
@@ -43,13 +47,16 @@ public class InterfaceSICXE extends JFrame {
         toolBar.setFloatable(false);
         toolBar.setBackground(new Color(240, 245, 255));
 
-        JButton btnCarregar = new JButton("📁 Carregar Programa");
-        JButton btnResetar = new JButton("🔄 Resetar");
-        JButton btnEditar = new JButton("✏️ Editar Manualmente");
-        JButton btnSair = new JButton("🚪 Sair");
+        JButton btnCarregar = new JButton("Carregar Programa");
+        JButton btnResetar = new JButton("Resetar");
+        JButton btnLimparLog = new JButton("Limpar Log");
+        JButton btnEditar = new JButton("Editar Manualmente");
+        JButton btnSair = new JButton("Sair");
 
         toolBar.add(btnCarregar);
         toolBar.add(btnResetar);
+        toolBar.addSeparator();
+        toolBar.add(btnLimparLog);
         toolBar.addSeparator();
         toolBar.add(btnEditar);
         toolBar.addSeparator();
@@ -109,6 +116,10 @@ btnCarregar.addActionListener(e -> {
             executor.limpar();
             atualizarTodosPaineis();
             painelLog.adicionarMensagem("Simulador resetado.");
+        });
+        
+        btnLimparLog.addActionListener(e -> {
+            painelLog.limpar();
         });
 
         btnEditar.addActionListener(e -> {

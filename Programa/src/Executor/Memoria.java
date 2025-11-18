@@ -1,5 +1,6 @@
 package Executor;
 
+import interfacesicxe.PainelLog;
 import java.util.Arrays;
 
 public class Memoria {
@@ -30,7 +31,7 @@ public class Memoria {
     }
         
 public byte[] getBytes(int qtd, int pos) {
-    System.err.println("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
+    PainelLog.logGlobal("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
     if (qtd <= 0) {
         return new byte[0];
     }
@@ -41,7 +42,7 @@ public byte[] getBytes(int qtd, int pos) {
         } else {
             bytes[i] = 0;
         }
-        System.err.println("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
+        PainelLog.logGlobal("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
     }
     return bytes;
 }

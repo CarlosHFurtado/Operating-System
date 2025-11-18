@@ -2,6 +2,7 @@ package Executor;
 
 import Instrucoes.Instrucao;
 import Instrucoes.TabelaOpcodes;
+import interfacesicxe.PainelLog;
 
 public class Executor {
     private Memoria memoria;
@@ -26,16 +27,16 @@ public class Executor {
 
 public void executarPrograma() {
     int pc = registradores.getValor("PC");
-    System.err.println("DEBUG: PC inicial = " + String.format("%06X", pc));
+    PainelLog.logGlobal("DEBUG: PC inicial = " + String.format("%06X", pc));
     stop = false;
     while (!stop) {
         if (pc < 0 || pc >= memoria.getMem().length - 2) {
-            System.err.println("DEBUG: PC fora dos limites: " + String.format("%06X", pc));
+            PainelLog.logGlobal("DEBUG: PC fora dos limites: " + String.format("%06X", pc));
             break;
         }
 
         byte opcode = memoria.getByte(pc);
-        System.err.println("DEBUG: Lendo opcode " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
+        PainelLog.logGlobal("DEBUG: Lendo opcode " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
 
         if (opcode == (byte) 0xD8) { // READ
             stop = true;
@@ -48,12 +49,24 @@ public void executarPrograma() {
         } else {
             Instrucao instr = instrucoes.getInstrucao(opcode);
             if (instr == null) {
-                System.err.println("Opcode desconhecido: " + String.format("%02X", opcode));
+                PainelLog.logGlobal("Opcode desconhecido: " + String.format("%02X", opcode));
                 break;
             }
             instr.executar(memoria, registradores);
         }
         pc = registradores.getValor("PC");
+    }
+}
+
+private PainelLog painelLog;
+
+public void setPainelLog(PainelLog painelLog) {
+    this.painelLog = painelLog;
+}
+
+private void log(String msg) {
+    if (painelLog != null) {
+        painelLog.adicionarMensagem(msg);
     }
 }
 
@@ -65,7 +78,7 @@ public void executarPrograma() {
 
     byte opcode = memoria.getByte(pc);
     if (opcode == 0 && pc > 0) { // Se for zero e não for o início, pode ser lixo
-        System.err.println("PC em endereço vazio: " + String.format("%06X", pc));
+        PainelLog.logGlobal("PC em endereço vazio: " + String.format("%06X", pc));
         return false;
     }
 
@@ -80,7 +93,7 @@ public void executarPrograma() {
     } else {
         Instrucao instr = instrucoes.getInstrucao(opcode);
         if (instr == null) {
-            System.err.println("Opcode inválido: " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
+            log("Opcode inválido: " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
             return false;
         }
         instr.executar(memoria, registradores);

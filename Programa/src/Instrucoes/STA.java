@@ -2,6 +2,7 @@ package Instrucoes;
 
 import Executor.Memoria;
 import Executor.Registradores;
+import interfacesicxe.PainelLog;
 
 public class STA extends Instrucao {
 
@@ -24,7 +25,7 @@ public class STA extends Instrucao {
         int valorA = registradores.getValor("A");
         
         if (isImediato) {
-            System.err.println("ERRO: STA não suporta modo imediato");
+            PainelLog.logGlobal("ERRO: STA não suporta modo imediato");
         } else if (isIndireto) {
             int enderecoIndireto = memoria.getWord(enderecoEfetivo);
             memoria.setWord(enderecoIndireto, valorA);

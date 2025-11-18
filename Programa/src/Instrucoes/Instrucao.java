@@ -5,6 +5,7 @@ import java.util.Map;
 
 import Executor.Memoria;
 import Executor.Registradores;
+import interfacesicxe.PainelLog;
 
 public abstract class Instrucao {
     
@@ -46,7 +47,7 @@ public abstract class Instrucao {
     }
 
 public int getFormatoInstrucao(byte[] bytes) {
-    System.err.println("DEBUG: bytes.length = " + (bytes == null ? "null" : bytes.length));
+    PainelLog.logGlobal("DEBUG: bytes.length = " + (bytes == null ? "null" : bytes.length));
     if (bytes == null || bytes.length < 2) {
         throw new IllegalArgumentException("Instrução inválida: precisa de pelo menos 2 bytes. Tamanho atual: " + (bytes == null ? 0 : bytes.length));
     }

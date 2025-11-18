@@ -36,12 +36,12 @@ public class TelaInicial extends JDialog {
         painelAutores.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
         String[] autores = {
-            "Memória - Gerson",
-            "Registrador - Henrique",
-            "Registradores - Gustavo",
-            "Executor - Carlos",
-            "Instruções - Dienifer",
-            "Interface - Maria Eduarda"
+            "Gerson",
+            "Henrique",
+            "Gustavo",
+            "Carlos",
+            "Dienifer",
+            "Maria Eduarda"
         };
 
         for (String autor : autores) {
