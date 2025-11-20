@@ -4,33 +4,28 @@ import Executor.Memoria;
 import Executor.Registradores;
 
 public class ADD extends Instrucao {
-    
+
     public ADD() {
-        
-        super("ADD", (byte)0x18, "3/4", 3);
-        
+        super("ADD", (byte) 0x18, "3", 3); 
     }
-    
+
     @Override
-    public void executar(Memoria memoria, Registradores registradores) {
+    public void executar(Memoria memoria, Registradores registradores, byte[] bytesInstrucao, int tamanho) {
         
         int pcAtual = registradores.getValor("PC");
-
-        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
         
-        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
-           
+        setFlags(bytesInstrucao);
+        
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         
         int operando = obterOperando(memoria, registradores, enderecoEfetivo);
         
-        int acumulador = registradores.getValor("A"); 
+        int valorA = registradores.getValor("A");
         
-        int resultado = acumulador + operando;
+        // Executa a soma
+        registradores.setValor("A", valorA + operando);
         
-        registradores.setValor("A", resultado); 
-         
-        registradores.incrementar("PC", formato); 
-    
-    }        
+        // Atualiza o PC
+        registradores.incrementar("PC", tamanho); 
+    }
 }

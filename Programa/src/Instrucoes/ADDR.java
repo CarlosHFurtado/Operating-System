@@ -2,55 +2,45 @@ package Instrucoes;
 
 import Executor.Memoria;
 import Executor.Registradores;
+import interfacesicxe.PainelLog;
 
 public class ADDR extends Instrucao {
 
     public ADDR() {
-        
-        super("ADDR", (byte)0x90, "2", 2);
-    
+        super("ADDR", (byte) 0x90, "2", 2); // Opcode 90, Formato 2, Tamanho 2
     }
 
     @Override
-    public void executar(Memoria memoria, Registradores registradores) {
+    public void executar(Memoria memoria, Registradores registradores, byte[] bytesInstrucao, int tamanho) {
         
-        int pcAtual = registradores.getValor("PC");
+        // Formato 2: [Opcode (8 bits)][r1 (4 bits)][r2 (4 bits)]
+        // O segundo byte (índice 1) contém os IDs dos registradores
+        byte regByte = bytesInstrucao[1];
         
-        byte[] bytesInstrucao = memoria.getBytes(2, pcAtual);
+        // r1 está nos 4 bits mais significativos
+        int r1Id = (regByte >> 4) & 0x0F;
+        // r2 está nos 4 bits menos significativos
+        int r2Id = regByte & 0x0F;
         
-        int[] registradoresID = getRegistradores(bytesInstrucao);
-        int r1 = registradoresID[0]; // Registrador fonte
-        int r2 = registradoresID[1]; // Registrador destino
+        // Assumindo que você criou o método getNomePorId na classe Registradores (veja a seção 3)
+        String r1Nome = registradores.getNomePorId(r1Id);
+        String r2Nome = registradores.getNomePorId(r2Id);
         
-        String nomeR1 = getNomeRegistrador(r1);
-        String nomeR2 = getNomeRegistrador(r2);
+        if (r1Nome == null || r2Nome == null) {
+            PainelLog.logGlobal("ERRO ADDR: Registrador(es) inválido(s).");
+            registradores.incrementar("PC", tamanho);
+            return;
+        }
+
+        int valorR1 = registradores.getValor(r1Nome);
+        int valorR2 = registradores.getValor(r2Nome);
         
-        int valorR1 = registradores.getValor(nomeR1);
-        int valorR2 = registradores.getValor(nomeR2);
-        
+        // r2 ← (r2) + (r1)
         int resultado = valorR2 + valorR1;
         
-        registradores.setValor(nomeR2, resultado);
+        registradores.setValor(r2Nome, resultado);
         
-        registradores.incrementar("PC", 2);
-        
-    }
-    
-    private String getNomeRegistrador(int id) {
-        
-        switch(id) {
-            
-            case 0: return "A";
-            case 1: return "X"; 
-            case 2: return "L";
-            case 3: return "B";
-            case 4: return "S";
-            case 5: return "T";
-            case 6: return "F";
-            case 8: return "PC";
-            case 9: return "SW";
-            default: return "A"; 
-            
-        }
+        // Incrementa PC para a próxima instrução
+        registradores.incrementar("PC", 3);
     }
 }

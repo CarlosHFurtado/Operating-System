@@ -6,6 +6,7 @@ import java.util.Map;
 public class Registradores {
 
     private Map<String, Registrador> registradores;
+    private char conditionCode = '='; // '<', '=', ou '>'
 
     public Registradores() {
         registradores = new HashMap<>();
@@ -39,6 +40,30 @@ public class Registradores {
         registradores.get(nome.toUpperCase()).incrementar(valor);
     }
 
+    /** NOVO: Retorna o nome do registrador dado seu ID (necessário para o Formato 2) */
+    public String getNomePorId(int id) {
+        for (Registrador reg : registradores.values()) {
+            if (reg.getId() == id) {
+                return reg.getNome();
+            }
+        }
+        return null; // ID não encontrado
+    }
+    
+    /** NOVO: Define o Condition Code (CC) no SW. */
+    public void setConditionCode(char cc) {
+        // Na implementação completa, isto atualizaria os bits do registrador SW (ID 9).
+        // Aqui, armazenamos o caractere para simplificar.
+        if (cc == '<' || cc == '=' || cc == '>') {
+            this.conditionCode = cc;
+        }
+    }
+    
+    /** NOVO: Obtém o Condition Code. */
+    public char getConditionCode() {
+        return this.conditionCode;
+    }
+
 
     public void limpar() { //Limpa os registradores
         for (Registrador r : registradores.values()) {
@@ -48,5 +73,6 @@ public class Registradores {
                 r.setValor(new byte[r.getValor().length]);
             }
         }
+        this.conditionCode = '=';
     }
 }
