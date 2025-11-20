@@ -19,7 +19,6 @@ public class InterfaceSICXE extends JFrame {
     public InterfaceSICXE() {
         super("Simulador SIC/XE - Interface Visual");
         this.executor = new Executor();
-        this.executor.setPainelLog(painelLog);
 
         FlatLightLaf.setup();
         configurarJanela();
@@ -37,7 +36,6 @@ public class InterfaceSICXE extends JFrame {
     private void criarComponentes() {
         painelLog = new PainelLog();
         this.executor = new Executor();
-        this.executor.setPainelLog(painelLog);
         
         painelControle = new PainelControle(executor, this);
         painelMemoria = new PainelMemoria(executor);
@@ -62,55 +60,55 @@ public class InterfaceSICXE extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnSair);
 
-btnCarregar.addActionListener(e -> {
-    JFileChooser chooser = new JFileChooser();
-    chooser.setDialogTitle("Selecione o arquivo de programa (.txt com hex)");
-    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-        try {
-            List<String> lines = Files.readAllLines(chooser.getSelectedFile().toPath());
-            executor.limpar();
+        btnCarregar.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Selecione o arquivo de programa (.txt com hex)");
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    List<String> lines = Files.readAllLines(chooser.getSelectedFile().toPath());
+                    executor.limpar();
 
-            int endereco = 0;
-            int memoriaTamanho = executor.getMemoria().getMem().length;
+                    int endereco = 0;
+                    int memoriaTamanho = executor.getMemoria().getMemoria().length;
 
-            for (String linha : lines) {
-                linha = linha.trim().toUpperCase();
-                if (linha.isEmpty() || linha.startsWith(";")) continue;
+                    for (String linha : lines) {
+                        linha = linha.trim().toUpperCase();
+                        if (linha.isEmpty() || linha.startsWith(";")) continue;
 
-                if (linha.length() % 2 != 0) {
-                    JOptionPane.showMessageDialog(this, "Linha inválida: " + linha);
-                    return;
-                }
+                        if (linha.length() % 2 != 0) {
+                            JOptionPane.showMessageDialog(this, "Linha inválida: " + linha);
+                            return;
+                        }
 
-                for (int i = 0; i < linha.length(); i += 2) {
-                    if (endereco >= memoriaTamanho) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Memória cheia! Programa truncado a partir do byte " + endereco + ".");
-                        break;
+                        for (int i = 0; i < linha.length(); i += 2) {
+                            if (endereco >= memoriaTamanho) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Memória cheia! Programa truncado a partir do byte " + endereco + ".");
+                                break;
+                            }
+
+                            String hexByte = linha.substring(i, i + 2);
+                            int valor = Integer.parseUnsignedInt(hexByte, 16);
+                            executor.getMemoria().setByte(endereco++, (byte) valor);
+                        }
                     }
 
-                    String hexByte = linha.substring(i, i + 2);
-                    int valor = Integer.parseUnsignedInt(hexByte, 16);
-                    executor.getMemoria().setByte(endereco++, (byte) valor);
+                    // Forçar PC para 0
+                    executor.getRegistradores().setValor("PC", 0);
+                    executor.getRegistradores().setValor("A", 0);
+                    executor.getRegistradores().setValor("SW", 0);
+
+                    atualizarTodosPaineis();
+                    painelLog.adicionarMensagem("Programa carregado com sucesso.");
+                    painelLog.adicionarMensagem("Bytes escritos: " + endereco);
+                    painelLog.adicionarMensagem("PC definido para 0.");
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao carregar: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             }
-
-            // Forçar PC para 0
-            executor.getRegistradores().setValor("PC", 0);
-            executor.getRegistradores().setValor("A", 0);
-            executor.getRegistradores().setValor("SW", 0);
-
-            atualizarTodosPaineis();
-            painelLog.adicionarMensagem("Programa carregado com sucesso.");
-            painelLog.adicionarMensagem("Bytes escritos: " + endereco);
-            painelLog.adicionarMensagem("PC definido para 0.");
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    }
-});
+        });
 
         btnResetar.addActionListener(e -> {
             executor.limpar();
@@ -132,12 +130,14 @@ btnCarregar.addActionListener(e -> {
         btnSair.addActionListener(e -> System.exit(0));
 
         JPanel painelCentral = new JPanel(new GridLayout(1, 2, 10, 10));
-        painelCentral.setBorder(BorderFactory.createTitledBorder("Área de Trabalho"));
+        painelCentral.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        painelCentral.setBackground(new Color(63, 84, 114));
         painelCentral.add(painelMemoria);
         painelCentral.add(painelLog);
 
         JPanel painelLateral = new JPanel(new BorderLayout(10, 10));
-        painelLateral.setBorder(BorderFactory.createTitledBorder("Controles"));
+        painelLateral.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        painelLateral.setBackground(new Color(63, 84, 114));
         painelLateral.add(painelRegistradores, BorderLayout.CENTER);
         painelLateral.add(painelControle, BorderLayout.SOUTH);
 
@@ -149,5 +149,11 @@ btnCarregar.addActionListener(e -> {
     public void atualizarTodosPaineis() {
         painelMemoria.atualizar();
         painelRegistradores.atualizar();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new InterfaceSICXE().setVisible(true);
+        });
     }
 }

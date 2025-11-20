@@ -1,32 +1,28 @@
 package Instrucoes;
 
+import java.util.Map;
+
 import Executor.Memoria;
 import Executor.Registradores;
 
 public class JEQ extends Instrucao {
 
     public JEQ() {
-        super("JEQ", (byte)0x30, "3/4", 3);
+        super("JEQ", (byte)0x30, "3/4",3 );
     }
 
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
-        
-        int pcAtual = registradores.getValor("PC");
-        
-        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
-        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
-        
-        int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
-        
-        int sw = registradores.getValor("SW");
-        int codigoCondicional = sw & 0x000003; 
-        
-        if (codigoCondicional == 0) {
-            // SALTA: PC recebe o endereço de destino
-            registradores.setValor("PC", enderecoEfetivo);
-        } else {
-            registradores.incrementar("PC", formato);
+
+        int TA = calcularTA(registradores, memoria); // operando
+
+        Map<String, Boolean> flags = getFlags();
+        if (flags.get("n") && !flags.get("i"))           // N = 1 e I = 0       
+            TA = memoria.getWord(memoria.getWord(TA)); 
+
+        if (registradores.getRegistradorPorNome("SW").getValorIntSigned() == 0) 
+        {
+            registradores.getRegistradorPorNome("PC").setValorInt(TA); 
         }
     }
 }

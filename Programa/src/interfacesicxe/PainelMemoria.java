@@ -82,7 +82,7 @@ public class PainelMemoria extends JPanel {
     public void atualizar() {
         modeloTabela.setRowCount(0);
         Memoria memoria = executor.getMemoria();
-        byte[] mem = memoria.getMem();
+        byte[] mem = memoria.getMemoria(); // Corrigido: use getMemoria() em vez de getMem()
 
         for (int i = 0; i < Math.min(64, mem.length); i += 4) {
             int valor = memoria.getWord(i);

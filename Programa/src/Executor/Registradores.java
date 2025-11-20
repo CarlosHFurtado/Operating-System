@@ -4,49 +4,105 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Registradores {
-
-    private Map<String, Registrador> registradores;
+    private final Map<Integer, Registrador> registradores;
 
     public Registradores() {
-        registradores = new HashMap<>();
+        Map<Integer, Registrador> regs = new HashMap<>();
 
-        //Registradores de 24 bits
-        registradores.put("A", new Registrador("A", 0));
-        registradores.put("X", new Registrador("X", 1));
-        registradores.put("L", new Registrador("L", 2));
-        registradores.put("B", new Registrador("B", 3));
-        registradores.put("S", new Registrador("S", 4));
-        registradores.put("T", new Registrador("T", 5));
-        // PC e SW de 24 bits
-        registradores.put("PC", new Registrador("PC", 8));
-        registradores.put("SW", new Registrador("SW", 9));
+        regs.put(0, new Registrador("A", 0)); // Acumulador - Armazena os dados (carregados e resultantes) das operações da Unid. de Lógica e Aritmética
+        regs.put(1, new Registrador("X",1)); // Registrador de Índice - Usado para endereçamento.
+        regs.put(2, new Registrador("L",2)); // Registrador de Ligação - A instrução Jump to Subrotine (JSUB) armazena o endereço de retorno nesse registrador.
+        regs.put(3, new Registrador("B",3)); // Registrador Base - Usado para endereçamento.
+        regs.put(4, new Registrador("S",4)); // Registrador de Uso Geral
+        regs.put(5, new Registrador("T",5)); // Registrador de Uso Geral
+        regs.put(8, new Registrador("PC",8)); //Program Counter - Mantém o endereço da próxima instrução a ser executada
+        
+        regs.put(9, new Registrador("SW",9)); 
+        // Palavra de Status - Contém várias informações, incluindo código condicional (CC)
+        // 1 -> <
+        // 0 ->  =
+        // 2 ->  >
+
+        registradores = regs;
     }
 
-
-    public Registrador get(String nome) { //Retorna registrador por nome
-        return registradores.get(nome.toUpperCase());
+    public Registrador getRegistrador(int id) {
+        return registradores.get(id);
     }
 
-    public int getValor(String nome) { //Retorna int (unsigned)
-        return registradores.get(nome.toUpperCase()).getValorIntUnsigned();
+    public Registrador getRegistradorPorNome(String nome) {
+        switch(nome) {
+            case "A":
+                return registradores.get(0);
+            case "X":
+                return registradores.get(1);
+            case "L":
+                return registradores.get(2);
+            case "B":
+                return registradores.get(3);
+            case "S":
+                return registradores.get(4);
+            case "T":
+                return registradores.get(5);
+            case "PC":
+                return registradores.get(8);
+            case "SW":
+                return registradores.get(9);
+        }
+        return null;
     }
 
-    public void setValor(String nome, int valor) { // Define valor int
-        registradores.get(nome.toUpperCase()).setValorInt(valor);
+    public static int getChaveRegistradorPorNome(String nome) {
+        switch(nome) {
+            case "A":
+                return 0;
+            case "X":
+                return 1;
+            case "L":
+                return 2;
+            case "B":
+                return 3;
+            case "S":
+                return 4;
+            case "T":
+                return 5;
+            case "PC":
+                return 8;
+            case "SW":
+                return 9;
+        }
+        return -1;
     }
 
-    public void incrementar(String nome, int valor) {
-        registradores.get(nome.toUpperCase()).incrementar(valor);
+    public void incrementarPC(int valor) {
+        registradores.get(8).incrementarValor(valor);
     }
 
+    public int getValorPC() {
+        return registradores.get(8).getValorIntSigned();
+    }
+    
+    public void limparRegistradores(){
+        getRegistradorPorNome("A").setValorInt(0);
+        getRegistradorPorNome("X").setValorInt(0);
+        getRegistradorPorNome("L").setValorInt(0);
+        getRegistradorPorNome("B").setValorInt(0);
+        getRegistradorPorNome("S").setValorInt(0);
+        getRegistradorPorNome("T").setValorInt(0);
+        getRegistradorPorNome("PC").setValorInt(0);
+        getRegistradorPorNome("SW").setValorInt(0);
+    }
 
-    public void limpar() { //Limpa os registradores
-        for (Registrador r : registradores.values()) {
-            if (r.getValor().length == 3) {
-                r.setValor(new byte[3]);
-            } else {
-                r.setValor(new byte[r.getValor().length]);
-            }
+    // MÉTODOS ADICIONADOS para compatibilidade com a interface
+    public int getValor(String nomeRegistrador) {
+        Registrador reg = getRegistradorPorNome(nomeRegistrador);
+        return reg != null ? reg.getValorIntSigned() : 0;
+    }
+
+    public void setValor(String nomeRegistrador, int valor) {
+        Registrador reg = getRegistradorPorNome(nomeRegistrador);
+        if (reg != null) {
+            reg.setValorInt(valor);
         }
     }
 }

@@ -1,8 +1,10 @@
 package Instrucoes;
 
+import java.util.Map;
+
 import Executor.Memoria;
 import Executor.Registradores;
-import interfacesicxe.PainelLog;
+
 
 public class STA extends Instrucao {
 
@@ -12,27 +14,15 @@ public class STA extends Instrucao {
 
     @Override
     public void executar(Memoria memoria, Registradores registradores) {
+
+        int TA = calcularTA(registradores, memoria); // operando
         
-        int pcAtual = registradores.getValor("PC");
-        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
-        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
+        Map<String, Boolean> flags = getFlags();
+        if (flags.get("n") && !flags.get("i"))           // N = 1 e I = 0       
+            TA = memoria.getWord(memoria.getWord(TA)); 
+            
+        int bytesRegA = registradores.getRegistradorPorNome("A").getValorIntSigned(); // retorna o valor armazenado no registrador A
         
-        int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
-        
-        boolean isImediato = getFlags().get("i") && !getFlags().get("n");
-        boolean isIndireto = getFlags().get("n") && !getFlags().get("i");
-        
-        int valorA = registradores.getValor("A");
-        
-        if (isImediato) {
-            PainelLog.logGlobal("ERRO: STA não suporta modo imediato");
-        } else if (isIndireto) {
-            int enderecoIndireto = memoria.getWord(enderecoEfetivo);
-            memoria.setWord(enderecoIndireto, valorA);
-        } else {
-            memoria.setWord(enderecoEfetivo, valorA);
-        }
-        
-        registradores.incrementar("PC", formato);
+        memoria.setWord(TA, bytesRegA); // armazena o valor do reg a na posição de memória espeçificado por TA
     }
 }

@@ -1,105 +1,108 @@
 package Executor;
 
-import Instrucoes.Instrucao;
-import Instrucoes.TabelaOpcodes;
-import interfacesicxe.PainelLog;
+import Instrucoes.Instrucoes;
 
 public class Executor {
     private Memoria memoria;
     private Registradores registradores;
-    private TabelaOpcodes instrucoes;
+    private Instrucoes instrucoes;
     private int output;
     private boolean stop;
 
     public Executor() {
-        this.memoria = new Memoria(1024);
+        this.memoria = new Memoria(1024); // 1KB de memória
         this.registradores = new Registradores();
-        this.instrucoes = new TabelaOpcodes();
+        this.instrucoes = new Instrucoes();
         this.output = -1;
     }
     
     public void limpar() {
-        memoria.limpaMem();
-        registradores.limpar();
+        memoria.limparMemoria();
+        registradores.limparRegistradores();
         output = -1;
     }
 
+    public void setPrograma(String programaObjeto) {
+        memoria.limparMemoria();
+        registradores.limparRegistradores();
 
-public void executarPrograma() {
-    int pc = registradores.getValor("PC");
-    PainelLog.logGlobal("DEBUG: PC inicial = " + String.format("%06X", pc));
-    stop = false;
-    while (!stop) {
-        if (pc < 0 || pc >= memoria.getMem().length - 2) {
-            PainelLog.logGlobal("DEBUG: PC fora dos limites: " + String.format("%06X", pc));
-            break;
+        int posMem = 0;
+
+        StringBuilder binaryString = new StringBuilder();
+
+        String[] lines = programaObjeto.split("\\r?\\n");
+
+        for (String l : lines) {
+            binaryString.append(l.trim());
         }
 
-        byte opcode = memoria.getByte(pc);
-        PainelLog.logGlobal("DEBUG: Lendo opcode " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
+        // Lê de 8 em 8 caracteres
+        for (int i = 0; i < binaryString.length(); i += 8) {
+            String pedaco = binaryString.substring(i, Math.min(i + 8, binaryString.length()));
 
-        if (opcode == (byte) 0xD8) { // READ
-            stop = true;
-            registradores.incrementar("PC", 1);
-            return;
+            byte pedacoByte = (byte) Integer.parseInt(pedaco, 2);
+
+            memoria.setByte(posMem++, pedacoByte);
         }
-        if (opcode == (byte) 0xDC) { // WRITE
-            setOutput(registradores.getValor("A"));
-            registradores.incrementar("PC", 1);
-        } else {
-            Instrucao instr = instrucoes.getInstrucao(opcode);
-            if (instr == null) {
-                PainelLog.logGlobal("Opcode desconhecido: " + String.format("%02X", opcode));
-                break;
+    }
+
+    
+    public void executarPrograma()
+    {
+        int pc = registradores.getValorPC();
+        stop = false;
+
+        while (memoria.getWord(pc) != 0) // para de executar se a proxima palavra for vazia
+        {
+
+            byte opcode = memoria.getOpcode(pc);
+            if (opcode == (byte)0xD8){ // Read
+                stop = true;
+                registradores.incrementarPC(1);
+                return;
             }
-            instr.executar(memoria, registradores);
-        }
-        pc = registradores.getValor("PC");
-    }
-}
-
-private PainelLog painelLog;
-
-public void setPainelLog(PainelLog painelLog) {
-    this.painelLog = painelLog;
-}
-
-private void log(String msg) {
-    if (painelLog != null) {
-        painelLog.adicionarMensagem(msg);
-    }
-}
-
-    public boolean executarPasso() {
-    int pc = registradores.getValor("PC");
-    if (pc < 0 || pc >= memoria.getMem().length - 2) {
-        return false;
+            
+            if (opcode == (byte)0xDC) { // Write
+                setOutput(registradores.getRegistradorPorNome("A").getValorIntSigned());
+                registradores.incrementarPC(1);
+            } else {
+                instrucoes.getInstrucao(opcode).executar(memoria, registradores);
+            }
+            
+            pc = this.registradores.getRegistradorPorNome("PC").getValorIntSigned();
+        }   
     }
 
-    byte opcode = memoria.getByte(pc);
-    if (opcode == 0 && pc > 0) { // Se for zero e não for o início, pode ser lixo
-        PainelLog.logGlobal("PC em endereço vazio: " + String.format("%06X", pc));
-        return false;
-    }
+    public boolean executarPasso()
+    {
+        int pc = this.registradores.getRegistradorPorNome("PC").getValorIntSigned();
 
-    if (opcode == (byte) 0xD8) { // READ
-        stop = true;
-        registradores.incrementar("PC", 1);
-        return true;
-    }
-    if (opcode == (byte) 0xDC) { // WRITE
-        setOutput(registradores.getValor("A"));
-        registradores.incrementar("PC", 1);
-    } else {
-        Instrucao instr = instrucoes.getInstrucao(opcode);
-        if (instr == null) {
-            log("Opcode inválido: " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
+        if (memoria.getWord(pc) == 0) // para de executar se a proxima palavra for vazia
+        {
             return false;
         }
-        instr.executar(memoria, registradores);
+        
+        byte opcode = memoria.getOpcode(pc);
+        stop = false;
+        
+        if (opcode == (byte)0xD8)
+        {
+            stop = true;
+            registradores.incrementarPC(1);
+            return true;
+        }
+
+        if (opcode == (byte)0xDC) {
+            setOutput(registradores.getRegistradorPorNome("A").getValorIntSigned());
+            registradores.incrementarPC(1);
+        } else {
+            instrucoes.getInstrucao(opcode).executar(memoria, registradores);
+        }
+
+        pc = this.registradores.getValorPC();
+
+        return true;
     }
-    return true;
-}
     
     public Memoria getMemoria() {
         return memoria;
@@ -109,7 +112,7 @@ private void log(String msg) {
         return registradores;
     }
     
-    public TabelaOpcodes getInstrucoes() {
+    public Instrucoes getInstrucoes() {
         return instrucoes;
     }
 
@@ -121,7 +124,12 @@ private void log(String msg) {
         return output;
     }
     
-    public boolean getStop() {
+    public boolean getStop(){
         return stop;
+    }
+
+    // MÉTODOS ADICIONADOS PARA COMPATIBILIDADE COM A INTERFACE
+    public byte[] getMem() {
+        return memoria.getMemoria();
     }
 }
