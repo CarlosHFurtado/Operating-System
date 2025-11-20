@@ -1,77 +1,73 @@
 package Executor;
 
+import interfacesicxe.PainelLog;
 import java.util.Arrays;
+
 public class Memoria {
-    
     private byte[] memoria;
-    private int capacidade;
+    private int tamanho;
 
-    public Memoria(int capacidade){ // capacidade = 1024 -> 1KB de memória
-        this.memoria = new byte[capacidade];
-        this.capacidade = capacidade;
+    public Memoria(int tamanho) {
+        if (tamanho <= 0) {
+            throw new IllegalArgumentException("tamanho deve ser > 0");
+        }
+        this.memoria = new byte[tamanho];
+        this.tamanho = tamanho;
     }
     
-    public void limparMemoria(){ // Zera a memória
-        Arrays.fill(memoria,(byte)0);
-    }
-    
-    public byte[] getMemoria() {
-        return memoria;
-    }
-
-    // MÉTODO ADICIONADO para compatibilidade
     public byte[] getMem() {
         return memoria;
     }
-
-    public byte getByte(int posicao){ // Retorna o byte no endereço posicao
-        if (posicao < 0 || posicao >= capacidade) {
+    
+    public void limpaMem() {
+        Arrays.fill(memoria, (byte) 0);
+    }
+    
+    public byte getByte(int pos) {
+        if (pos < 0 || pos >= tamanho) {
             return 0;
         }
-        return (byte)((memoria[posicao]) & 0xFF);
+        return (byte) (memoria[pos] & 0xFF);
     }
-    
-    public byte getOpcode(int posicao) {
-        byte primeiroByte = getByte(posicao);
-        return (byte)((primeiroByte & 0b11111100));
+        
+public byte[] getBytes(int qtd, int pos) {
+    PainelLog.logGlobal("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
+    if (qtd <= 0) {
+        return new byte[0];
     }
-    
-    public byte[] getBytes(int posicao, int numero) {
-        byte[] bytes = new byte[numero];
-        for(int i = 0; i < numero && posicao + i < capacidade; i++) {
-            bytes[i] = getByte(posicao + i);
+    byte[] bytes = new byte[qtd];
+    for (int i = 0; i < qtd; i++) {
+        if (pos + i < tamanho) {
+            bytes[i] = getByte(pos + i);
+        } else {
+            bytes[i] = 0;
         }
-        return bytes;
+        PainelLog.logGlobal("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
+    }
+    return bytes;
+}
+    
+    public void setByte(int pos, byte b) {
+        if (pos >= 0 && pos < tamanho) {
+            memoria[pos] = b;
+        }
     }
 
-    public void setByteInt(int posicao, int value){ // Seta o byte no endereço para o valor inteiro informado
-        if (posicao >= 0 && posicao < capacidade) {
-            memoria[posicao] = (byte)(value & 0xFF);
-        }
+    public void setByteInt(int pos, int valor) {
+        setByte(pos, (byte) (valor & 0xFF));
     }
     
-    public void setByte(int posicao, byte b){ // Seta o byte no endereço para o valor byte informado
-        if (posicao >= 0 && posicao < capacidade) {
-            memoria[posicao] = b;
-        }
+    public void setWord(int pos, int valor) {
+        setByteInt(pos, valor >>> 16);
+        setByteInt(pos + 1, valor >>> 8);
+        setByteInt(pos + 2, valor);
     }
-    
-    public void setWord(int posicao, int value){ // Preenche uma word de 3 bytes com um valor inteiro informado
-        if (posicao >= 0 && posicao + 2 < capacidade) {
-            setByteInt(posicao, (value >> 16) & 0xFF);
-            setByteInt(posicao + 1, (value >> 8) & 0xFF);
-            setByteInt(posicao + 2, value & 0xFF);
-        }
-    }
-    
-    public int getWord(int posicao){
-        if (posicao < 0 || posicao + 2 >= capacidade) {
-            return 0;
-        }
-        int MSB = (getByte(posicao) & 0xFF) << 16; // shift para esquerda de 16 bits
-        int MID = (getByte(posicao + 1) & 0xFF) << 8;  // shift para esquerda de 8 bits
-        int LSB = getByte(posicao + 2) & 0xFF;
-        // Ex: 0xE10000 + 0xE100 + 0xE1 = 0xE1E1E1 (efetivamente, concatena os 3 bytes da word)
-        return MSB + MID + LSB;
+
+    public int getWord(int pos) {
+        if (pos + 2 >= tamanho) return 0;
+        int MSB = (getByte(pos) & 0xFF) << 16;
+        int MID = (getByte(pos + 1) & 0xFF) << 8;
+        int LSB = (getByte(pos + 2) & 0xFF);
+        return MSB | MID | LSB;
     }
 }
