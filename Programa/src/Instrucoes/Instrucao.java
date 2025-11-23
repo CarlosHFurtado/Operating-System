@@ -24,9 +24,7 @@ public abstract class Instrucao {
         
     }
 
-    /** NOVO: Método abstrato para execução que agora recebe os bytes e o tamanho da instrução. */
-    public abstract void executar(Memoria memoria, Registradores registradores, byte[] bytesInstrucao, int tamanho);
-
+    public abstract void executar(Memoria memoria, Registradores registradores);
 
     public String getNome() { 
         return nome; 

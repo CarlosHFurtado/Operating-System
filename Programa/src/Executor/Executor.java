@@ -47,20 +47,12 @@ public void executarPrograma() {
             setOutput(registradores.getValor("A"));
             registradores.incrementar("PC", 1);
         } else {
-            // Ajustar o opcode para o opcode base (6 bits) para buscar na TabelaOpcodes
-            byte opcodeBase = (byte) (opcode & 0xFC); 
-            Instrucao instr = instrucoes.getInstrucao(opcodeBase);
-            
+            Instrucao instr = instrucoes.getInstrucao(opcode);
             if (instr == null) {
                 PainelLog.logGlobal("Opcode desconhecido: " + String.format("%02X", opcode));
                 break;
             }
-            
-            // NOVO: Obter tamanho e bytes para passar para a execução
-            int tamanho = instr.getLength();
-            byte[] bytesInstrucao = memoria.getBytes(tamanho, pc);
-            
-            instr.executar(memoria, registradores, bytesInstrucao, tamanho); // NOVO: Chamada atualizada
+            instr.executar(memoria, registradores);
         }
         pc = registradores.getValor("PC");
     }
@@ -99,20 +91,12 @@ private void log(String msg) {
         setOutput(registradores.getValor("A"));
         registradores.incrementar("PC", 1);
     } else {
-        // Ajustar o opcode para o opcode base (6 bits)
-        byte opcodeBase = (byte) (opcode & 0xFC);
-        Instrucao instr = instrucoes.getInstrucao(opcodeBase);
-        
+        Instrucao instr = instrucoes.getInstrucao(opcode);
         if (instr == null) {
             log("Opcode inválido: " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
             return false;
         }
-        
-        // NOVO: Obter tamanho e bytes para passar para a execução
-        int tamanho = instr.getLength();
-        byte[] bytesInstrucao = memoria.getBytes(tamanho, pc);
-        
-        instr.executar(memoria, registradores, bytesInstrucao, tamanho); // NOVO: Chamada atualizada
+        instr.executar(memoria, registradores);
     }
     return true;
 }

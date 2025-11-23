@@ -2,41 +2,37 @@ package Instrucoes;
 
 import Executor.Memoria;
 import Executor.Registradores;
+import interfacesicxe.PainelLog;
 
 public class STA extends Instrucao {
 
     public STA() {
-        super("STA", (byte) 0x0C, "3", 3); 
+        super("STA", (byte)0x0C, "3/4", 3);
     }
 
     @Override
-    public void executar(Memoria memoria, Registradores registradores, byte[] bytesInstrucao, int tamanho) {
+    public void executar(Memoria memoria, Registradores registradores) {
         
         int pcAtual = registradores.getValor("PC");
+        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
+        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
         
-        // 1. Define flags
-        setFlags(bytesInstrucao);
-        
-        // 2. Calcula endereço
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
         
-        // 3. Obtém o valor do registrador A
+        boolean isImediato = getFlags().get("i") && !getFlags().get("n");
+        boolean isIndireto = getFlags().get("n") && !getFlags().get("i");
+        
         int valorA = registradores.getValor("A");
         
-        // 4. Executa a operação: Apenas endereçamento direto/indireto é permitido para STA
-        boolean n = getFlags().get("n");
-        boolean i = getFlags().get("i");
-        
-        if (i && !n) { // Imediato (ex: STA #VAR) - Ilegal, mas tratamos como direto
-            memoria.setWord(enderecoEfetivo, valorA);
-        } else if (n && !i) { // Indireto (ex: STA @VAR)
+        if (isImediato) {
+            PainelLog.logGlobal("ERRO: STA não suporta modo imediato");
+        } else if (isIndireto) {
             int enderecoIndireto = memoria.getWord(enderecoEfetivo);
             memoria.setWord(enderecoIndireto, valorA);
-        } else { // Direto/Simples
+        } else {
             memoria.setWord(enderecoEfetivo, valorA);
         }
         
-        // 5. Atualiza o PC
-        registradores.incrementar("PC", tamanho); 
+        registradores.incrementar("PC", formato);
     }
 }
