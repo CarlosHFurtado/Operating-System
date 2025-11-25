@@ -18,12 +18,12 @@ public class TabelaOpcodes {
         catalogoInstrucoes.put((byte)0x90, new ADDR ());
         catalogoInstrucoes.put((byte)0x28, new COMP ());
         catalogoInstrucoes.put((byte)0x30, new JEQ  ());
-        catalogoInstrucoes.put((byte)0x0,  new LDA  ());
-        catalogoInstrucoes.put((byte)0x0C, new STA   ());
+        catalogoInstrucoes.put((byte)0x00, new LDA  ());
+        catalogoInstrucoes.put((byte)0x0C, new STA  ());
         
    /*   catalogoInstrucoes.put((byte)0x40, new AND  ());
         
-        catalogoInstrucoes.put((byte)0x4,  new CLEAR());
+        catalogoInstrucoes.put((byte)0xB4, new CLEAR());
         catalogoInstrucoes.put((byte)0x28, new COMP ());
         catalogoInstrucoes.put((byte)0xA0, new COMPR());
         
@@ -36,10 +36,10 @@ public class TabelaOpcodes {
         catalogoInstrucoes.put((byte)0x38, new JLT  ());
         catalogoInstrucoes.put((byte)0x48, new JSUB ());
         
-        catalogoInstrucoes.put((byte)0x0,  new LDA  ());
+        catalogoInstrucoes.put((byte)0x00,  new LDA  ());
         catalogoInstrucoes.put((byte)0x68, new LDB  ());
         catalogoInstrucoes.put((byte)0x50, new LDCH ());
-        catalogoInstrucoes.put((byte)0x8,  new LDL  ());
+        catalogoInstrucoes.put((byte)0x08, new LDL  ());
         catalogoInstrucoes.put((byte)0x6C, new LDS  ());
         catalogoInstrucoes.put((byte)0x74, new LDT  ());
         catalogoInstrucoes.put((byte)0x04, new LDX  ());

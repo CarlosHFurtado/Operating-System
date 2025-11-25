@@ -31,13 +31,11 @@ public void executarPrograma() {
     stop = false;
     while (!stop) {
         if (pc < 0 || pc >= memoria.getMem().length - 2) {
-            PainelLog.logGlobal("DEBUG: PC fora dos limites: " + String.format("%06X", pc));
+            PainelLog.logGlobal("Programa finalizado normalmente.");
             break;
         }
 
         byte opcode = memoria.getByte(pc);
-        PainelLog.logGlobal("DEBUG: Lendo opcode " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
-
         if (opcode == (byte) 0xD8) { // READ
             stop = true;
             registradores.incrementar("PC", 1);
@@ -49,7 +47,7 @@ public void executarPrograma() {
         } else {
             Instrucao instr = instrucoes.getInstrucao(opcode);
             if (instr == null) {
-                PainelLog.logGlobal("Opcode desconhecido: " + String.format("%02X", opcode));
+                PainelLog.logGlobal("ERRO: Opcode inválido: " + String.format("%02X", opcode) + " em PC=" + String.format("%06X", pc));
                 break;
             }
             instr.executar(memoria, registradores);
