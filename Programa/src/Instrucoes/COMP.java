@@ -1,41 +1,61 @@
 package Instrucoes;
 
+// @author Dienifer Ledebuhr
+
 import Executor.Memoria;
 import Executor.Registradores;
+import interfacesicxe.PainelLog;
 
-public class COMP extends Instrucao {
-
+public class COMP extends InstrucaoFormato3ou4 {
+    
+    // (A) : (m..m+2) -> Seta CC no SW
+    
     public COMP() {
-        super("COMP", (byte)0x28, "3/4", 3);
+        
+        super("COMP", (byte) 0x28);
+        
     }
 
     @Override
+    
     public void executar(Memoria memoria, Registradores registradores) {
         
-        int pcAtual = registradores.getValor("PC");
+        // Calcular AE e obter o Operando
         
-        int formato = getFormatoInstrucao(memoria.getBytes(2, pcAtual));
-        byte[] bytesInstrucao = memoria.getBytes(formato, pcAtual);
+        int operando = calcularEObterOperando(memoria, registradores);
         
-        int enderecoEfetivo = calcularEnderecoEfetivo(bytesInstrucao, registradores, pcAtual);
+        // Obter o valor atual de A 
         
-        int operando = obterOperando(memoria, registradores, enderecoEfetivo);
+        int valorA = registradores.getValorIntSigned("A");
         
-        int valorAcumulador = registradores.getValor("A"); 
+        // Executar a comparação
         
-        int codigoCondicional;
-        if (valorAcumulador == operando) {
-            codigoCondicional = 0; // Igual
-        } else if (valorAcumulador < operando) {
-            codigoCondicional = 1; // Menor
+        int novoSW;
+        
+        // Limpa os bits CC existentes no SW
+        
+        int swAntigo = registradores.getValor("SW") & 0xFF0FFFFF; 
+        
+        if (valorA < operando) {
+            
+            novoSW = swAntigo | 0x00800000; 
+            
+        } else if (valorA > operando) {
+            
+            novoSW = swAntigo | 0x00400000;
+            
         } else {
-            codigoCondicional = 2; // Maior
+            
+            novoSW = swAntigo | 0x00200000; 
+            
         }
         
-        int swAtual = registradores.getValor("SW");
-        swAtual = (swAtual & 0xFFFF00) | codigoCondicional; 
-        registradores.setValor("SW", swAtual);
+        // 4. Setar o novo SW
         
-        registradores.incrementar("PC", formato);
+        registradores.setValor("SW", novoSW);
+        
+        PainelLog.logGlobal(String.format("COMP: (A)=%d : Operando(%d). SW_novo=0x%X", 
+            valorA, operando, novoSW));
+        
     }
 }

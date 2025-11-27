@@ -6,15 +6,13 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-// STA - STB - STL - STS - STT - STX -> Mesmo codigo, muda apenas opcode e o registrador
-
-public class STA extends InstrucaoFormato3ou4 {
+public class STCH extends InstrucaoFormato3ou4 {
     
-    // m..m+2 <- (A)
+    // m <- (A) [byte mais à direita]
     
-    public STA() {
+    public STCH() {
         
-        super("STA", (byte) 0x0C);
+        super("STCH", (byte) 0x54);
         
     }
 
@@ -33,31 +31,31 @@ public class STA extends InstrucaoFormato3ou4 {
         int pcAposBusca = pcInicial + formato;
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesCompletos, registradores, pcAposBusca);
         
-        // Obter o valor do registrador a ser armazenado
+        // Obter o valor do byte de A
         
-        int valorA = registradores.getValor("A"); 
-
+        int valorA = registradores.getValor("A");
+        byte byteA = (byte) (valorA & 0xFF); 
+        
         // Determinar o endereço de destino
         
         int enderecoDestino = enderecoEfetivo;
         
-        // Se for Indireto (n=1, i=0), o AE aponta para o endereço real
-        
+        // Se for Indireto (n=1, i=0), o AE aponta para o endereço real.
+
         if (getFlags().get("n") && !getFlags().get("i")) {
             
-            // Se o modo for indireto, o AE contém o endereço onde o valor será armazenado
+            // O valor em AE é o endereço real do byte
             
             enderecoDestino = memoria.getValor3Bytes(enderecoEfetivo);
             
         }
         
-        // Armazenar o valor 
+        // Armazenar o valor
         
-        memoria.setValor3Bytes(enderecoDestino, valorA); 
-        
+        memoria.setByte(enderecoDestino, byteA); 
 
-        PainelLog.logGlobal(String.format("STA: Armazenando (A) = 0x%X em 0x%X (AE = 0x%X)", 
-            valorA, enderecoDestino, enderecoEfetivo));
+        PainelLog.logGlobal(String.format("STCH: Armazenando Byte (A)=0x%X em 0x%X (AE=0x%X)", 
+            byteA, enderecoDestino, enderecoEfetivo));
         
     }
 }

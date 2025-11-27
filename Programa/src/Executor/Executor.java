@@ -36,11 +36,7 @@ public void executarPrograma() {
         }
 
         byte opcode = memoria.getByte(pc);
-        if (opcode == (byte) 0xD8) { // READ
-            stop = true;
-            registradores.incrementar("PC", 1);
-            return;
-        }
+
         if (opcode == (byte) 0xDC) { // WRITE
             setOutput(registradores.getValor("A"));
             registradores.incrementar("PC", 1);
@@ -56,17 +52,20 @@ public void executarPrograma() {
     }
 }
 
-private PainelLog painelLog;
+    private PainelLog painelLog;
 
-public void setPainelLog(PainelLog painelLog) {
-    this.painelLog = painelLog;
-}
-
-private void log(String msg) {
-    if (painelLog != null) {
-        painelLog.adicionarMensagem(msg);
+    public void setPainelLog(PainelLog painelLog) {
+        
+        this.painelLog = painelLog;
+        
     }
-}
+
+    private void log(String msg) {
+        
+        if (painelLog != null) {
+            painelLog.adicionarMensagem(msg);
+        }
+    }
 
     public boolean executarPasso() {
     int pc = registradores.getValor("PC");
@@ -88,6 +87,7 @@ private void log(String msg) {
     if (opcode == (byte) 0xDC) { // WRITE
         setOutput(registradores.getValor("A"));
         registradores.incrementar("PC", 1);
+        
     } else {
         Instrucao instr = instrucoes.getInstrucao(opcode);
         if (instr == null) {

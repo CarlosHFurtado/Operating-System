@@ -6,13 +6,13 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-public class ADD extends InstrucaoFormato3ou4 {
+public class OR extends InstrucaoFormato3ou4 {
     
-    // A <- (A) + (m..m+2)
+    // A <- (A) OR (m..m+2)
     
-    public ADD() {
+    public OR() {
         
-        super("ADD", (byte) 0x18);
+        super("OR", (byte) 0x44);
         
     }
 
@@ -26,18 +26,18 @@ public class ADD extends InstrucaoFormato3ou4 {
         
         // Obter o valor atual de A 
         
-        int valorA = registradores.getValorIntSigned("A");
+        int valorA = registradores.getValor("A");
         
-        // Executar a soma
-       
-        int resultado = valorA + operando;
+        // Executar o OR lógico 
         
-        // Armazenar o resultado em A.
-       
+        int resultado = valorA | operando;
+        
+        // Armazenar o resultado em A
+        
         registradores.setValor("A", resultado);
         
-        PainelLog.logGlobal(String.format("ADD: A <- (%d) + Operando(%d). Novo A = %d (0x%X)", 
-            valorA, operando, registradores.getValorIntSigned("A"), registradores.getValor("A")));
+        PainelLog.logGlobal(String.format("OR: A <- (0x%X) OR (0x%X). Novo A = 0x%X", 
+            valorA, operando, resultado));
         
     }
 }

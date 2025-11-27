@@ -6,17 +6,18 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-public class ADDR extends InstrucaoFormato2 {
+public class RMO extends InstrucaoFormato2 {
     
-    // r2 <- (r2) + (r1)
+    // r2 <- (r1)
     
-    public ADDR() {
+    public RMO() {
         
-        super("ADDR", (byte)0x90);
+        super("RMO", (byte) 0xAC);
         
     }
 
     @Override
+    
     public void executar(Memoria memoria, Registradores registradores) {
         
         int pcInicial = registradores.getValor("PC");
@@ -36,24 +37,21 @@ public class ADDR extends InstrucaoFormato2 {
         
         if (r1Nome == null || r2Nome == null) {
             
-            PainelLog.logGlobal("Erro: Registrador inválido para ADDR em PC = " + String.format("%06X", pcInicial));
+            PainelLog.logGlobal("Erro: Registrador inválido para RMO em PC = " + String.format("%06X", pcInicial));
             return;
             
         }
 
-        // Executar a soma 
+        // Executar a cópia
         
-        int valorR1 = registradores.getValorIntSigned(r1Nome);
-        int valorR2 = registradores.getValorIntSigned(r2Nome);
+        int valorR1 = registradores.getValor(r1Nome);
         
-        int resultado = valorR1 + valorR2;
+        // Armazenar o valor de R1 em R2
         
-        // Armazenar o resultado em R2 
+        registradores.setValor(r2Nome, valorR1);
         
-        registradores.setValor(r2Nome, resultado);
-        
-        PainelLog.logGlobal(String.format("ADDR: %s <- (%s) + (%s). Resultado em %s: %d (0x%X)", 
-            r2Nome, r2Nome, r1Nome, r2Nome, resultado, resultado));
+        PainelLog.logGlobal(String.format("RMO: %s <- (%s)=%d (0x%X)", 
+            r2Nome, r1Nome, valorR1, valorR1));
         
     }
 }

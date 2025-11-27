@@ -6,17 +6,18 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-public class ADDR extends InstrucaoFormato2 {
+public class MULR extends InstrucaoFormato2 {
     
-    // r2 <- (r2) + (r1)
+    // r2 <- (r2) * (r1)
     
-    public ADDR() {
+    public MULR() {
         
-        super("ADDR", (byte)0x90);
+        super("MULR", (byte) 0x98);
         
     }
 
     @Override
+    
     public void executar(Memoria memoria, Registradores registradores) {
         
         int pcInicial = registradores.getValor("PC");
@@ -36,23 +37,24 @@ public class ADDR extends InstrucaoFormato2 {
         
         if (r1Nome == null || r2Nome == null) {
             
-            PainelLog.logGlobal("Erro: Registrador inválido para ADDR em PC = " + String.format("%06X", pcInicial));
+            PainelLog.logGlobal("Erro: Registrador inválido para MULR em PC = " + String.format("%06X", pcInicial));
             return;
             
         }
 
-        // Executar a soma 
+        // Executar a multiplicação 
         
         int valorR1 = registradores.getValorIntSigned(r1Nome);
         int valorR2 = registradores.getValorIntSigned(r2Nome);
+               
+        long resultadoLong = (long) valorR2 * valorR1;
+        int resultado = (int) resultadoLong; 
         
-        int resultado = valorR1 + valorR2;
-        
-        // Armazenar o resultado em R2 
+        // Armazenar o resultado em R2
         
         registradores.setValor(r2Nome, resultado);
         
-        PainelLog.logGlobal(String.format("ADDR: %s <- (%s) + (%s). Resultado em %s: %d (0x%X)", 
+        PainelLog.logGlobal(String.format("MULR: %s <- (%s) * (%s). Resultado em %s: %d (0x%X)", 
             r2Nome, r2Nome, r1Nome, r2Nome, resultado, resultado));
         
     }

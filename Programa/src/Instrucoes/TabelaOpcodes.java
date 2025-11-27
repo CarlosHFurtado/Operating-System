@@ -12,16 +12,11 @@ public class TabelaOpcodes {
 
     public TabelaOpcodes() {
         
-        catalogoInstrucoes = new HashMap<>();
+        catalogoInstrucoes = new HashMap<>();  
         
         catalogoInstrucoes.put((byte)0x18, new ADD  ());
-        catalogoInstrucoes.put((byte)0x90, new ADDR ());
-        catalogoInstrucoes.put((byte)0x28, new COMP ());
-        catalogoInstrucoes.put((byte)0x30, new JEQ  ());
-        catalogoInstrucoes.put((byte)0x00, new LDA  ());
-        catalogoInstrucoes.put((byte)0x0C, new STA  ());
-        
-   /*   catalogoInstrucoes.put((byte)0x40, new AND  ());
+        catalogoInstrucoes.put((byte)0x90, new ADDR ());      
+        catalogoInstrucoes.put((byte)0x40, new AND  ());
         
         catalogoInstrucoes.put((byte)0xB4, new CLEAR());
         catalogoInstrucoes.put((byte)0x28, new COMP ());
@@ -65,7 +60,7 @@ public class TabelaOpcodes {
         catalogoInstrucoes.put((byte)0x94, new SUBR  ());
         
         catalogoInstrucoes.put((byte)0x2C, new TIX  ());
-        catalogoInstrucoes.put((byte)0xB8, new TIXR ());*/
+        catalogoInstrucoes.put((byte)0xB8, new TIXR ());
     
     }
 

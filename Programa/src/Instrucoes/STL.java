@@ -8,13 +8,11 @@ import interfacesicxe.PainelLog;
 
 // STA - STB - STL - STS - STT - STX -> Mesmo codigo, muda apenas opcode e o registrador
 
-public class STA extends InstrucaoFormato3ou4 {
-    
-    // m..m+2 <- (A)
-    
-    public STA() {
+public class STL extends InstrucaoFormato3ou4 {
         
-        super("STA", (byte) 0x0C);
+    public STL() {
+        
+        super("STB", (byte) 0x14);
         
     }
 
@@ -35,7 +33,7 @@ public class STA extends InstrucaoFormato3ou4 {
         
         // Obter o valor do registrador a ser armazenado
         
-        int valorA = registradores.getValor("A"); 
+        int valorL = registradores.getValor("L"); 
 
         // Determinar o endereço de destino
         
@@ -53,11 +51,10 @@ public class STA extends InstrucaoFormato3ou4 {
         
         // Armazenar o valor 
         
-        memoria.setValor3Bytes(enderecoDestino, valorA); 
+        memoria.setValor3Bytes(enderecoDestino, valorL); 
         
-
-        PainelLog.logGlobal(String.format("STA: Armazenando (A) = 0x%X em 0x%X (AE = 0x%X)", 
-            valorA, enderecoDestino, enderecoEfetivo));
+        PainelLog.logGlobal(String.format("STL: Armazenando (L) = 0x%X em 0x%X (AE = 0x%X)", 
+            valorL, enderecoDestino, enderecoEfetivo));
         
     }
 }

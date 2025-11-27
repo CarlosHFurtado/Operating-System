@@ -6,13 +6,13 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-public class JEQ extends InstrucaoFormato3ou4 {
+public class JGT extends InstrucaoFormato3ou4 {
     
-    // PC <- Endereço Efetivo SE (CC == '=')
+    // PC <- Endereço Efetivo SE (CC == '>')
     
-    public JEQ() {
+    public JGT() {
         
-        super("JEQ", (byte) 0x30);
+        super("JGT", (byte) 0x34);
         
     }
 
@@ -27,7 +27,7 @@ public class JEQ extends InstrucaoFormato3ou4 {
         byte[] bytesIniciais = memoria.getBytes(2, pcInicial);
         int formato = getFormatoInstrucao(bytesIniciais);
         byte[] bytesCompletos = memoria.getBytes(formato, pcInicial);
-        registradores.incrementar("PC", formato); // PC já avança
+        registradores.incrementar("PC", formato); 
         int pcAposBusca = pcInicial + formato;
         int enderecoEfetivo = calcularEnderecoEfetivo(bytesCompletos, registradores, pcAposBusca);
         
@@ -35,21 +35,17 @@ public class JEQ extends InstrucaoFormato3ou4 {
         
         int enderecoDestino = obterOperando(memoria, registradores, enderecoEfetivo);
         
-        // Checar a condição '='
+        // Checar a condição '>'
         
-        if (registradores.checarCondicao("=")) {
-            
-            // Se a condição for verdadeira, salta.
+        if (registradores.checarCondicao(">")) {
             
             registradores.setValor("PC", enderecoDestino);
             
-            PainelLog.logGlobal(String.format("JEQ: Condição '=' satisfeita. PC <- 0x%X", enderecoDestino));
-            
+            PainelLog.logGlobal(String.format("JGT: Condição '>' satisfeita. PC <- 0x%X", enderecoDestino));
+        
         } else {
-            
-            // Se a condição for falsa, o PC permanece no valor incrementado (continua a próxima instrução).
-            
-            PainelLog.logGlobal(String.format("JEQ: Condição '=' NÃO satisfeita. PC continua em 0x%X", pcAposBusca));
+           
+            PainelLog.logGlobal(String.format("JGT: Condição '>' NÃO satisfeita. PC continua em 0x%X", pcAposBusca));
         
         }
     }

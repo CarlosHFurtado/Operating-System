@@ -46,6 +46,40 @@ public byte[] getBytes(int qtd, int pos) {
     }
     return bytes;
 }
+
+    // Obter um valor de 3 bytes
+
+    public int getValor3Bytes(int pos) {
+        
+        if (pos < 0 || pos + 2 >= tamanho) {
+            return 0; 
+        }
+
+        int byte3 = (memoria[pos] & 0xFF) << 16;
+        int byte2 = (memoria[pos + 1] & 0xFF) << 8;
+        int byte1 = (memoria[pos + 2] & 0xFF);
+
+        return byte3 | byte2 | byte1;
+        
+    }
+
+    public void setValor3Bytes(int pos, int valor) {
+        
+        if (pos < 0 || pos + 2 >= tamanho) {
+
+            return; 
+
+        }
+
+        valor &= 0xFFFFFF;
+
+        memoria[pos] = (byte) ((valor >> 16) & 0xFF);
+
+        memoria[pos + 1] = (byte) ((valor >> 8) & 0xFF);
+
+        memoria[pos + 2] = (byte) (valor & 0xFF);
+
+    }
     
     public void setByte(int pos, byte b) {
         if (pos >= 0 && pos < tamanho) {

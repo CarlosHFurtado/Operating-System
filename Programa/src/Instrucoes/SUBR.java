@@ -6,17 +6,18 @@ import Executor.Memoria;
 import Executor.Registradores;
 import interfacesicxe.PainelLog;
 
-public class ADDR extends InstrucaoFormato2 {
+public class SUBR extends InstrucaoFormato2 {
     
-    // r2 <- (r2) + (r1)
+    // r2 <- (r2) - (r1)
     
-    public ADDR() {
+    public SUBR() {
         
-        super("ADDR", (byte)0x90);
+        super("SUBR", (byte) 0x94);
         
     }
 
     @Override
+    
     public void executar(Memoria memoria, Registradores registradores) {
         
         int pcInicial = registradores.getValor("PC");
@@ -27,7 +28,7 @@ public class ADDR extends InstrucaoFormato2 {
         int r1Id = reg[0];
         int r2Id = reg[1];
         
-        // Incrementar PC 
+        // Incrementar PC
         
         registradores.incrementar("PC", 2);
 
@@ -36,23 +37,21 @@ public class ADDR extends InstrucaoFormato2 {
         
         if (r1Nome == null || r2Nome == null) {
             
-            PainelLog.logGlobal("Erro: Registrador inválido para ADDR em PC = " + String.format("%06X", pcInicial));
+            PainelLog.logGlobal("Erro: Registrador inválido para SUBR em PC = " + String.format("%06X", pcInicial));
             return;
             
         }
 
-        // Executar a soma 
-        
+        // Executar a subtração 
         int valorR1 = registradores.getValorIntSigned(r1Nome);
         int valorR2 = registradores.getValorIntSigned(r2Nome);
         
-        int resultado = valorR1 + valorR2;
+        int resultado = valorR2 - valorR1;
         
         // Armazenar o resultado em R2 
-        
         registradores.setValor(r2Nome, resultado);
         
-        PainelLog.logGlobal(String.format("ADDR: %s <- (%s) + (%s). Resultado em %s: %d (0x%X)", 
+        PainelLog.logGlobal(String.format("SUBR: %s <- (%s) - (%s). Resultado em %s: %d (0x%X)", 
             r2Nome, r2Nome, r1Nome, r2Nome, resultado, resultado));
         
     }
