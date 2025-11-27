@@ -33,7 +33,17 @@ public class J extends InstrucaoFormato3ou4 {
         
         // O operando (m) é o endereço de destino (AE, Imediato, ou Indireto)
 
-        int enderecoDestino = obterOperando(memoria, registradores, enderecoEfetivo);
+        int enderecoDestino;
+
+        if (getFlags().get("n") && !getFlags().get("i")) { 
+
+            enderecoDestino = memoria.getValor3Bytes(enderecoEfetivo);
+
+        } else { 
+
+            enderecoDestino = enderecoEfetivo;
+            
+        }
         
         // Atualizar o PC
         

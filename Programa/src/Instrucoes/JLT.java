@@ -32,7 +32,17 @@ public class JLT extends InstrucaoFormato3ou4 {
         
         // Obter o endereço de destino
         
-        int enderecoDestino = obterOperando(memoria, registradores, enderecoEfetivo);
+        int enderecoDestino;
+
+        if (getFlags().get("n") && !getFlags().get("i")) { 
+
+            enderecoDestino = memoria.getValor3Bytes(enderecoEfetivo);
+
+        } else { 
+
+            enderecoDestino = enderecoEfetivo;
+            
+        }
         
         // Checar a condição '<'
         
