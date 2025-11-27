@@ -97,25 +97,28 @@ public class Registradores {
     public boolean checarCondicao(String condicao) {
         
         int valorSW = getValor("SW");
-        
+        int mascara;
+
         switch (condicao) {
             
-            case "=": 
+            case "=":
+                mascara = 0x00200000; 
+                break;
                 
-                return (valorSW & 0x200000) != 0;
+            case ">":
+                mascara = 0x00400000; 
+                break;
                 
-            case ">": 
-                
-                return (valorSW & 0x400000) != 0;
-                
-            case "<": 
-                
-                return (valorSW & 0x800000) != 0;
+            case "<":
+                mascara = 0x00800000; 
+                break;
                 
             default:
-                
+               
                 return false;
-                
         }
+
+        return (valorSW & mascara) != 0;
+        
     }
 }

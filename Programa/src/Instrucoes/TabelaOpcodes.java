@@ -31,7 +31,7 @@ public class TabelaOpcodes {
         catalogoInstrucoes.put((byte)0x38, new JLT  ());
         catalogoInstrucoes.put((byte)0x48, new JSUB ());
         
-        catalogoInstrucoes.put((byte)0x00,  new LDA  ());
+        catalogoInstrucoes.put((byte)0x00, new LDA  ());
         catalogoInstrucoes.put((byte)0x68, new LDB  ());
         catalogoInstrucoes.put((byte)0x50, new LDCH ());
         catalogoInstrucoes.put((byte)0x08, new LDL  ());

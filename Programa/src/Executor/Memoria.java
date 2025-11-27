@@ -30,29 +30,46 @@ public class Memoria {
         return (byte) (memoria[pos] & 0xFF);
     }
         
-public byte[] getBytes(int qtd, int pos) {
-    PainelLog.logGlobal("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
-    if (qtd <= 0) {
-        return new byte[0];
-    }
-    byte[] bytes = new byte[qtd];
-    for (int i = 0; i < qtd; i++) {
-        if (pos + i < tamanho) {
-            bytes[i] = getByte(pos + i);
-        } else {
-            bytes[i] = 0;
+    public byte[] getBytes(int qtd, int pos) {
+        
+        PainelLog.logGlobal("DEBUG: getBytes(qtd=" + qtd + ", pos=" + pos + ")");
+        
+        if (qtd <= 0) {
+            
+            return new byte[0];
+            
         }
-        PainelLog.logGlobal("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
+        
+        byte[] bytes = new byte[qtd];
+        
+        for (int i = 0; i < qtd; i++) {
+            
+            if (pos + i < tamanho) {
+                
+                bytes[i] = getByte(pos + i);
+                
+            } else {
+                
+                bytes[i] = 0;
+                
+            }
+            
+            PainelLog.logGlobal("  byte[" + i + "] = " + String.format("%02X", bytes[i]));
+            
+        }
+        
+        return bytes;
+        
     }
-    return bytes;
-}
 
     // Obter um valor de 3 bytes
 
     public int getValor3Bytes(int pos) {
         
         if (pos < 0 || pos + 2 >= tamanho) {
+            
             return 0; 
+            
         }
 
         int byte3 = (memoria[pos] & 0xFF) << 16;

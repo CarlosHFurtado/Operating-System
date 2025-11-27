@@ -35,7 +35,7 @@ public class Registrador {
         int byte1 = valor[2];
 
         return byte1 + byte2 + byte3;
-    }
+    }   
 
     public int getValorIntSigned() {
         int byte1 = valor[2];
