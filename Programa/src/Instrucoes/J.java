@@ -51,7 +51,5 @@ public class J extends InstrucaoFormato3ou4 {
         
         PainelLog.logGlobal(String.format("J: Salto Incondicional. PC <- 0x%X", enderecoDestino));
         
-        logSeparador();
-        
     }
 }

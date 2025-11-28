@@ -90,7 +90,5 @@ public class TIXR extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("TIXR: X <- (X) + 1. Compara (X) = %d : (%s) = %d. SW_novo = 0x%X", 
             valorX, r1Nome, valorR1, novoSW));
         
-        logSeparador();
-        
     }
 }

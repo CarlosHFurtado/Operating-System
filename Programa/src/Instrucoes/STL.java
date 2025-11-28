@@ -56,7 +56,5 @@ public class STL extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STL: Armazenando (L) = 0x%X em 0x%X (AE = 0x%X)", 
             valorL, enderecoDestino, enderecoEfetivo));
         
-        logSeparador();
-        
     }
 }

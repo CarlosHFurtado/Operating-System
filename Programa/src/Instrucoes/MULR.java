@@ -57,7 +57,5 @@ public class MULR extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("MULR: %s <- (%s) * (%s). Resultado em %s: %d (0x%X)", 
             r2Nome, r2Nome, r1Nome, r2Nome, resultado, resultado));
         
-        logSeparador();
-        
     }
 }

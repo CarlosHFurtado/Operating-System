@@ -39,7 +39,5 @@ public class AND extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("AND: A <- (0x%X) AND (0x%X). Novo A=0x%X", 
             valorA, operando, resultado));
         
-        logSeparador();
-        
     }
 }

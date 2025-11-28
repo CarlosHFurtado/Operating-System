@@ -56,7 +56,5 @@ public class STX extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STX: Armazenando (X) = 0x%X em 0x%X (AE = 0x%X)", 
             valorX, enderecoDestino, enderecoEfetivo));
         
-        logSeparador();
-        
     }
 }

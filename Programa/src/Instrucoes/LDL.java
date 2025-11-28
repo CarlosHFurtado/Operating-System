@@ -29,6 +29,5 @@ public class LDL extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDL: L <- Operando (0x%X). Novo L = 0x%X", 
             operando, registradores.getValor("L")));
         
-        logSeparador();
     }
 }

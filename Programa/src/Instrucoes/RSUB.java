@@ -36,7 +36,5 @@ public class RSUB extends InstrucaoFormato3ou4 {
         
         PainelLog.logGlobal(String.format("RSUB: Retorno de Sub-rotina. PC <- (L)=0x%X", enderecoRetorno));
     
-        logSeparador();
-        
     }
 }

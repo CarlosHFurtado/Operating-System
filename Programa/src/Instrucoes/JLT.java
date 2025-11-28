@@ -55,8 +55,6 @@ public class JLT extends InstrucaoFormato3ou4 {
         } else {
            
             PainelLog.logGlobal(String.format("JLT: Condição '<' NÃO satisfeita. PC continua em 0x%X", pcAposBusca));
-            
-            logSeparador();
         
         }
     }

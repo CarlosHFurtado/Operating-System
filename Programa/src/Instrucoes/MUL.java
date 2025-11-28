@@ -40,8 +40,6 @@ public class MUL extends InstrucaoFormato3ou4 {
         
         PainelLog.logGlobal(String.format("MUL: A <- (%d) * Operando(%d). Novo A=%d (0x%X). Resultado Long: %d", 
             valorA, operando, registradores.getValorIntSigned("A"), registradores.getValor("A"), resultadoLong));
-        
-        logSeparador();
     
     }
 }

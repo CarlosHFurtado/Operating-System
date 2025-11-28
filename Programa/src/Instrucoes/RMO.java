@@ -53,7 +53,5 @@ public class RMO extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("RMO: %s <- (%s)=%d (0x%X)", 
             r2Nome, r1Nome, valorR1, valorR1));
         
-        logSeparador();
-        
     }
 }

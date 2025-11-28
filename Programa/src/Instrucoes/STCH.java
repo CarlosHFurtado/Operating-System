@@ -57,7 +57,5 @@ public class STCH extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STCH: Armazenando Byte (A)=0x%X em 0x%X (AE=0x%X)", 
             byteA, enderecoDestino, enderecoEfetivo));
         
-        logSeparador();
-        
     }
 }

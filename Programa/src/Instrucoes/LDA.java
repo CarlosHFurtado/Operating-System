@@ -33,7 +33,5 @@ public class LDA extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDA: A <- Operando (0x%X). Novo A = 0x%X", 
             operando, registradores.getValor("A")));
         
-        logSeparador();
-        
     }
 }

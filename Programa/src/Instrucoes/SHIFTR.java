@@ -56,7 +56,5 @@ public class SHIFTR extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("SHIFTR: %s <- (%s) >> %d (Aritmético). Resultado: %d (0x%X)", 
             r1Nome, r1Nome, n, resultado, resultado));
         
-        logSeparador();
-        
     }
 }

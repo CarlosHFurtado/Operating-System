@@ -49,7 +49,7 @@ public class PainelLog extends JPanel {
 
     // Método para adicionar mensagens na interface
     public void adicionarMensagem(String msg) {
-        areaLog.append("  " + msg + "\n");
+        areaLog.append("> " + msg + "\n");
         areaLog.setCaretPosition(areaLog.getDocument().getLength());
     }
 
@@ -58,6 +58,7 @@ public class PainelLog extends JPanel {
         if (instance != null) {
             instance.adicionarMensagem(msg);
         }
+        // Se instance for null (ex: log antes da criação do painel), silenciosamente ignora
     }
 
     public void limpar() {

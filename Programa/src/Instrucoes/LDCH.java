@@ -72,6 +72,5 @@ public class LDCH extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDCH: A[byte dir] <- Byte (0x%X) de 0x%X. Novo A = 0x%X", 
             novoByte, enderecoEfetivo, novoValorA));
         
-        logSeparador();
     }
 }

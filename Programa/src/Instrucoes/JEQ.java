@@ -60,8 +60,6 @@ public class JEQ extends InstrucaoFormato3ou4 {
             // Se a condição for falsa, o PC permanece no valor incrementado (continua a próxima instrução).
             
             PainelLog.logGlobal(String.format("JEQ: Condição '=' NÃO satisfeita. PC continua em 0x%X", pcAposBusca));
-            
-            logSeparador();
         
         }
     }

@@ -90,7 +90,5 @@ public class COMPR extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("COMPR: (%s) = %d : (%s) = %d. SW_novo = 0x%X", 
             r1Nome, valorR1, r2Nome, valorR2, novoSW));
         
-        logSeparador();
-        
     }
 }

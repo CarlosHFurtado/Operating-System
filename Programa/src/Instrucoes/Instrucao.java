@@ -90,10 +90,6 @@ public abstract class Instrucao {
         flags.put("e", (flagsByte & 0x10) != 0);
     }
     
-    protected void logSeparador() {
-        PainelLog.logGlobal("");
-    }
-    
     private int getDisp(byte[] bytesInstrucao) {
       
         int disp = bytesInstrucao[1] & 0x0F; 
