@@ -56,5 +56,7 @@ public class STS extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STS: Armazenando (B) = 0x%X em 0x%X (AE = 0x%X)", 
             valorS, enderecoDestino, enderecoEfetivo));
         
+        logSeparador();
+        
     }
 }

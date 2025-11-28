@@ -42,5 +42,7 @@ public class CLEAR extends InstrucaoFormato2 {
         
         PainelLog.logGlobal(String.format("CLEAR: Registrador %s zerado. Novo valor=0x0", r1Nome));
         
+        logSeparador();
+        
     }
 }

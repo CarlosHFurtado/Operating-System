@@ -59,5 +59,7 @@ public class STA extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STA: Armazenando (A) = 0x%X em 0x%X (AE = 0x%X)", 
             valorA, enderecoDestino, enderecoEfetivo));
         
+        logSeparador();
+        
     }
 }

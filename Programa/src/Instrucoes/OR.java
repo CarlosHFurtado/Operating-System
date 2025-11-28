@@ -39,5 +39,7 @@ public class OR extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("OR: A <- (0x%X) OR (0x%X). Novo A = 0x%X", 
             valorA, operando, resultado));
         
+        logSeparador();
+        
     }
 }

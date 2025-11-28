@@ -56,6 +56,8 @@ public class JGT extends InstrucaoFormato3ou4 {
         } else {
            
             PainelLog.logGlobal(String.format("JGT: Condição '>' NÃO satisfeita. PC continua em 0x%X", pcAposBusca));
+            
+            logSeparador();
         
         }
     }

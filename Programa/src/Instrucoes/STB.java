@@ -56,5 +56,7 @@ public class STB extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("STB: Armazenando (B) = 0x%X em 0x%X (AE = 0x%X)", 
             valorB, enderecoDestino, enderecoEfetivo));
         
+        logSeparador();
+        
     }
 }

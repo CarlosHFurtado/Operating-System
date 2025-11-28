@@ -54,5 +54,7 @@ public class SHIFTL extends InstrucaoFormato2 {
         PainelLog.logGlobal(String.format("SHIFTL: %s <- (%s) << %d. Resultado: %d (0x%X)", 
             r1Nome, r1Nome, n, resultado, resultado));
         
+        logSeparador();
+        
     }
 }

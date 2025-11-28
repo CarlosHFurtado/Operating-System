@@ -55,5 +55,7 @@ public class JSUB extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("JSUB: L <- 0x%X (Retorno). PC <- 0x%X (Sub-rotina)", 
             enderecoRetorno, enderecoDestino));
         
+        logSeparador();
+        
     }
 }

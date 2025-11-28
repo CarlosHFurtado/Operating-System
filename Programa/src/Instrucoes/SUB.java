@@ -38,5 +38,7 @@ public class SUB extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("SUB: A <- (%d) - Operando(%d). Novo A=%d (0x%X)", 
             valorA, operando, registradores.getValorIntSigned("A"), registradores.getValor("A")));
         
+        logSeparador();
+        
     }
 }

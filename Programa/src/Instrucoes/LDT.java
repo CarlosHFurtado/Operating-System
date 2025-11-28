@@ -28,6 +28,8 @@ public class LDT extends InstrucaoFormato3ou4 {
         
         PainelLog.logGlobal(String.format("LDT: T <- Operando (0x%X). Novo T = 0x%X", 
             operando, registradores.getValor("T")));
+     
+        logSeparador();
         
     }
 }

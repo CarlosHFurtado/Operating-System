@@ -31,5 +31,6 @@ public class LDB extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDB: B <- Operando (0x%X). Novo B = 0x%X", 
             operando, registradores.getValor("B")));
         
+        logSeparador();
     }
 }

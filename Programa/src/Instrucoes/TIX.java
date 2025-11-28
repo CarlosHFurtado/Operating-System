@@ -61,5 +61,7 @@ public class TIX extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("TIX: X <- (X)+1. Compara (X) = %d : Operando(%d). SW_novo=0x%X", 
             valorX, operando, novoSW));
         
+        logSeparador();
+        
     }
 }

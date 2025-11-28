@@ -57,5 +57,7 @@ public class COMP extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("COMP: (A)=%d : Operando(%d). SW_novo=0x%X", 
             valorA, operando, novoSW));
         
+        logSeparador();
+        
     }
 }

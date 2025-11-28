@@ -29,5 +29,6 @@ public class LDS extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDL: S <- Operando (0x%X). Novo S = 0x%X", 
             operando, registradores.getValor("S")));
         
+        logSeparador();
     }
 }

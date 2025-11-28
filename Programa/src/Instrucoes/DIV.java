@@ -51,5 +51,7 @@ public class DIV extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("DIV: A <- (%d) / Operando(%d). Novo A = %d (0x%X)", 
             valorA, operando, registradores.getValorIntSigned("A"), registradores.getValor("A")));
         
+        logSeparador();
+        
     }
 }

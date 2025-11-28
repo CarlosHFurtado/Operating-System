@@ -29,5 +29,7 @@ public class LDX extends InstrucaoFormato3ou4 {
         PainelLog.logGlobal(String.format("LDX: X <- Operando (0x%X). Novo X = 0x%X", 
             operando, registradores.getValor("X")));
         
+        logSeparador();
+        
     }
 }
