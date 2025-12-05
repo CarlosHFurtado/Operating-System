@@ -18,9 +18,7 @@ public class InterfaceSICXE extends JFrame {
 
     public InterfaceSICXE() {
         super("Simulador SIC/XE - Interface Visual");
-        this.executor = new Executor();
-        this.executor.setPainelLog(painelLog);
-
+        
         FlatLightLaf.setup();
         configurarJanela();
         criarComponentes();
@@ -36,6 +34,7 @@ public class InterfaceSICXE extends JFrame {
 
     private void criarComponentes() {
         painelLog = new PainelLog();
+        // Inicializa o Executor e o conecta ao PainelLog
         this.executor = new Executor();
         this.executor.setPainelLog(painelLog);
         
@@ -66,57 +65,59 @@ public class InterfaceSICXE extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnSair);
         
-      btnAbrirMontador.addActionListener(e -> new InterfaceMontador().setVisible(true));
+        // AÇÃO MODIFICADA: Passa a referência desta interface (this) para o Montador
+        btnAbrirMontador.addActionListener(e -> new InterfaceMontador(this).setVisible(true));
 
-btnCarregar.addActionListener(e -> {
-    JFileChooser chooser = new JFileChooser();
-    chooser.setDialogTitle("Selecione o arquivo de programa (.txt com hex)");
-    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-        try {
-            List<String> lines = Files.readAllLines(chooser.getSelectedFile().toPath());
-            executor.limpar();
+        // AÇÃO ORIGINAL DE CARREGAMENTO DE ARQUIVO (MANTIDA)
+        btnCarregar.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Selecione o arquivo de programa (.txt com hex)");
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    List<String> lines = Files.readAllLines(chooser.getSelectedFile().toPath());
+                    executor.limpar();
 
-            int endereco = 0;
-            int memoriaTamanho = executor.getMemoria().getMem().length;
+                    int endereco = 0;
+                    int memoriaTamanho = executor.getMemoria().getMem().length;
 
-            for (String linha : lines) {
-                linha = linha.trim().toUpperCase();
-                if (linha.isEmpty() || linha.startsWith(";")) continue;
+                    for (String linha : lines) {
+                        linha = linha.trim().toUpperCase();
+                        if (linha.isEmpty() || linha.startsWith(";")) continue;
 
-                if (linha.length() % 2 != 0) {
-                    JOptionPane.showMessageDialog(this, "Linha inválida: " + linha);
-                    return;
-                }
+                        if (linha.length() % 2 != 0) {
+                            JOptionPane.showMessageDialog(this, "Linha inválida: " + linha);
+                            return;
+                        }
 
-                for (int i = 0; i < linha.length(); i += 2) {
-                    if (endereco >= memoriaTamanho) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Memória cheia! Programa truncado a partir do byte " + endereco + ".");
-                        break;
+                        for (int i = 0; i < linha.length(); i += 2) {
+                            if (endereco >= memoriaTamanho) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Memória cheia! Programa truncado a partir do byte " + endereco + ".");
+                                break;
+                            }
+
+                            String hexByte = linha.substring(i, i + 2);
+                            int valor = Integer.parseUnsignedInt(hexByte, 16);
+                            executor.getMemoria().setByte(endereco++, (byte) valor);
+                        }
                     }
 
-                    String hexByte = linha.substring(i, i + 2);
-                    int valor = Integer.parseUnsignedInt(hexByte, 16);
-                    executor.getMemoria().setByte(endereco++, (byte) valor);
+                    // Forçar PC para 0 e limpar outros registradores
+                    executor.getRegistradores().setValor("PC", 0);
+                    executor.getRegistradores().setValor("A", 0);
+                    executor.getRegistradores().setValor("SW", 0);
+
+                    atualizarTodosPaineis();
+                    painelLog.adicionarMensagem("Programa carregado com sucesso.");
+                    painelLog.adicionarMensagem("Bytes escritos: " + endereco);
+                    painelLog.adicionarMensagem("PC definido para 0.");
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao carregar: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             }
-
-            // Forçar PC para 0
-            executor.getRegistradores().setValor("PC", 0);
-            executor.getRegistradores().setValor("A", 0);
-            executor.getRegistradores().setValor("SW", 0);
-
-            atualizarTodosPaineis();
-            painelLog.adicionarMensagem("Programa carregado com sucesso.");
-            painelLog.adicionarMensagem("Bytes escritos: " + endereco);
-            painelLog.adicionarMensagem("PC definido para 0.");
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    }
-});
+        });
 
         btnResetar.addActionListener(e -> {
             executor.limpar();
@@ -151,7 +152,60 @@ btnCarregar.addActionListener(e -> {
         add(painelCentral, BorderLayout.CENTER);
         add(painelLateral, BorderLayout.EAST);
     }
+    
+    /**
+     * NOVO MÉTODO: Carrega o programa diretamente a partir de uma string de código objeto.
+     * Este método é chamado pela InterfaceMontador ao clicar em "Carregar no Executor".
+     *
+     * @param objectCode A string contendo o código objeto em hexadecimal.
+     */
+    public void carregarProgramaMontado(String objectCode) {
+        if (objectCode == null || objectCode.trim().isEmpty() || objectCode.contains("ERRO")) {
+            painelLog.adicionarMensagem("ERRO: Código objeto vazio ou inválido. Carregamento cancelado.");
+            return;
+        }
 
+        try {
+            executor.limpar();
+            // Remove espaços e novas linhas, assumindo que objectCode é uma sequência de bytes hex
+            String hexCode = objectCode.replaceAll("\\s+", ""); 
+            
+            int endereco = 0;
+            int memoriaTamanho = executor.getMemoria().getMem().length;
+
+            if (hexCode.length() % 2 != 0) {
+                painelLog.adicionarMensagem("ERRO: Código objeto tem um número ímpar de caracteres hexadecimais.");
+                return;
+            }
+
+            for (int i = 0; i < hexCode.length(); i += 2) {
+                if (endereco >= memoriaTamanho) {
+                    painelLog.adicionarMensagem("Memória cheia! Programa truncado a partir do byte " + endereco + ".");
+                    break;
+                }
+
+                String hexByte = hexCode.substring(i, i + 2);
+                int valor = Integer.parseUnsignedInt(hexByte, 16);
+                executor.getMemoria().setByte(endereco++, (byte) valor);
+            }
+            
+            // Forçar PC para 0 e limpar outros registradores
+            executor.getRegistradores().setValor("PC", 0);
+            executor.getRegistradores().setValor("A", 0);
+            executor.getRegistradores().setValor("SW", 0);
+
+
+            atualizarTodosPaineis();
+            painelLog.adicionarMensagem("🚀 Programa carregado com sucesso pelo Montador.");
+            painelLog.adicionarMensagem("Bytes escritos: " + endereco);
+            painelLog.adicionarMensagem("PC definido para 0.");
+
+        } catch (Exception ex) {
+            painelLog.adicionarMensagem("ERRO CRÍTICO ao carregar o código objeto. Detalhes: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+    
     public void atualizarTodosPaineis() {
         painelMemoria.atualizar();
         painelRegistradores.atualizar();
