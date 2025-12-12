@@ -41,7 +41,7 @@ public class Executor {
             
             if (pc < 0 || pc >= memoria.getMem().length - 2) {
                 
-                PainelLog.logGlobal("Programa finalizado normalmente.");
+                PainelLog.logGlobal("Programa finalizado por limite de memória.");
                 break;
                 
             }
@@ -50,7 +50,7 @@ public class Executor {
 
             byte opcodeBase = (byte) (opcodeCompleto & 0xFC); 
 
-            if (opcodeBase == (byte) 0xD8) { 
+            if (opcodeBase == (byte) 0xD8) { // RD
                 
                 PainelLog.logGlobal("RD: Leitura de Dispositivo. Interrompendo execução.");
                 
@@ -62,7 +62,7 @@ public class Executor {
                 
             }
 
-            if (opcodeBase == (byte) 0xDC) { 
+            else if (opcodeBase == (byte) 0xDC) { // WD
                 
                 setOutput(registradores.getValor("A"));
                 
@@ -70,7 +70,22 @@ public class Executor {
                 
                 registradores.incrementar("PC", 3);
                 
-            } else { 
+            } 
+            
+            // NOVO BLOCO: TRATAMENTO DE RSUB (Opcode Base 4C)
+            else if (opcodeBase == (byte) 0x4C) { 
+                
+                Instrucao instr = instrucoes.getInstrucao(opcodeBase);
+                if (instr != null) {
+                    instr.executar(memoria, registradores); // Executa RSUB (PC -> L)
+                }
+                
+                PainelLog.logGlobal("RSUB (4C): Programa principal finalizado com sucesso.");
+                stop = true; // Força a parada do loop
+                break;
+            }
+            
+            else { // Todas as outras instruções
 
                 Instrucao instr = instrucoes.getInstrucao(opcodeBase);
                 
@@ -128,7 +143,7 @@ public class Executor {
             
         }
 
-        if (opcodeBase == (byte) 0xD8) {
+        if (opcodeBase == (byte) 0xD8) { // RD
             
             stop = true; 
             
@@ -140,7 +155,7 @@ public class Executor {
             
         }
 
-        if (opcodeBase == (byte) 0xDC) { 
+        else if (opcodeBase == (byte) 0xDC) { // WD
             
             setOutput(registradores.getValor("A"));
             
@@ -149,7 +164,21 @@ public class Executor {
             PainelLog.logGlobal(String.format("WD: Escrevendo 0x%X (A) na saída.", registradores.getValor("A")));
             return true;
             
-        } else {
+        }
+        
+        // NOVO BLOCO: TRATAMENTO DE RSUB (Opcode Base 4C)
+        else if (opcodeBase == (byte) 0x4C) { 
+            
+            Instrucao instr = instrucoes.getInstrucao(opcodeBase);
+            if (instr != null) {
+                instr.executar(memoria, registradores); // Executa RSUB (PC -> L)
+            }
+            
+            PainelLog.logGlobal("RSUB (4C): Retorno de Subrotina. Execução finalizada.");
+            return false; // Sinaliza o fim da execução
+        }
+        
+        else { // Todas as outras instruções
          
             Instrucao instr = instrucoes.getInstrucao(opcodeBase);
            
