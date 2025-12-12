@@ -52,6 +52,7 @@ public class InterfaceSICXE extends JFrame {
         JButton btnLimparLog = new JButton("Limpar Log");
         JButton btnEditar = new JButton("Editar Manualmente");
         JButton btnAbrirMontador = new JButton("Abrir Montador");
+        JButton btnProcessadorMacros = new JButton("Processador de Macros");
         JButton btnSair = new JButton("Sair");
 
 
@@ -64,9 +65,12 @@ public class InterfaceSICXE extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnAbrirMontador);
         toolBar.addSeparator();
+        toolBar.add(btnProcessadorMacros);
+        toolBar.addSeparator();
         toolBar.add(btnSair);
         
       btnAbrirMontador.addActionListener(e -> new InterfaceMontador().setVisible(true));
+      btnProcessadorMacros.addActionListener(e -> new InterfaceProcessadorMacros().setVisible(true));
 
 btnCarregar.addActionListener(e -> {
     JFileChooser chooser = new JFileChooser();
