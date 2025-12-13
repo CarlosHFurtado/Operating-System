@@ -1,7 +1,10 @@
 package montador;
 
+
 import java.util.List;
-import java.util.ArrayList; 
+import java.util.List;
+import java.util.ArrayList;
+import ProcessadorDeMacros.ProcessadorDeMacros;
 
 public class Montador {
     
@@ -26,13 +29,16 @@ public class Montador {
 
     public String montar(List<String> codigoSource) {
         
-        objectCodeBuilder.setLength(0); 
-        instructionObjectCodes.clear(); 
-        
-        passo1(codigoSource);
-        passo2(codigoSource); 
-        
-        return String.join("\n", instructionObjectCodes); 
+        ProcessadorDeMacros macroProcessor = new ProcessadorDeMacros();
+        List<String> codigoExpandido = macroProcessor.processar(codigoSource);
+
+        objectCodeBuilder.setLength(0);
+        instructionObjectCodes.clear();
+
+        passo1(codigoExpandido);
+        passo2(codigoExpandido);
+
+        return String.join("\n", instructionObjectCodes);
         
     }
     
