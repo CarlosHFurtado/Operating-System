@@ -27,26 +27,22 @@ public class ProcessadorMacros {
 
             if (trim.isEmpty() || trim.startsWith(";")) continue;
 
-            // Início de macro (duas sintaxes)
             if (ehInicioDeMacro(trim)) {
                 iniciarMacro(trim);
                 continue;
             }
 
-            // Fim de macro
             if (trim.equalsIgnoreCase("MEND")) {
                 Macro m = pilhaMacros.pop();
                 tabelaMacros.put(m.getNome(), m);
                 continue;
             }
 
-            // Dentro de definição de macro
             if (!pilhaMacros.isEmpty()) {
                 pilhaMacros.peek().adicionarLinha(linha);
                 continue;
             }
 
-            // Código normal → expandir
             expandirLinha(linha, saida);
         }
 
@@ -89,19 +85,42 @@ public class ProcessadorMacros {
     private void expandirLinha(String linha, List<String> saida) {
 
         String[] partes = linha.trim().split("\\s+");
-        String nome = partes[0].toUpperCase();
 
-        if (!tabelaMacros.containsKey(nome)) {
+        String label = null;
+        String nomeMacro;
+        int indiceArgs;
+
+        if (partes.length >= 2 && tabelaMacros.containsKey(partes[1].toUpperCase())) {
+            label = partes[0];
+            nomeMacro = partes[1].toUpperCase();
+            indiceArgs = 2;
+        }
+        else if (tabelaMacros.containsKey(partes[0].toUpperCase())) {
+            nomeMacro = partes[0].toUpperCase();
+            indiceArgs = 1;
+        }
+        else {
             saida.add(linha);
             return;
         }
 
-        Macro macro = tabelaMacros.get(nome);
+        Macro macro = tabelaMacros.get(nomeMacro);
+
+        String argsLinha = String.join(" ",
+                Arrays.copyOfRange(partes, indiceArgs, partes.length));
+
+        String[] valores = argsLinha.split("[,\\s]+");
+
+        if (valores.length < macro.getParametros().size()) {
+            throw new RuntimeException(
+                "Macro " + macro.getNome() + " chamada com parâmetros insuficientes.");
+        }
 
         Map<String, String> args = new HashMap<>();
         for (int i = 0; i < macro.getParametros().size(); i++) {
-            args.put(macro.getParametros().get(i), partes[i + 1]);
+            args.put(macro.getParametros().get(i), valores[i]);
         }
+
 
         for (String l : macro.getCorpo()) {
 
@@ -110,7 +129,12 @@ public class ProcessadorMacros {
                 expandida = expandida.replace(e.getKey(), e.getValue());
             }
 
-            // expansão recursiva (macro dentro de macro)
+            if (label != null) {
+                expandida = String.format("%-8s %s", label, expandida);
+                label = null;
+            }
+
+
             expandirLinha(expandida, saida);
         }
     }
