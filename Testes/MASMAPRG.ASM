@@ -1,9 +1,0 @@
-PARAM   START   3000
-MAIN LDA X
-STA Y
-LDA Y
-STA Z
-X       WORD 1
-Y       WORD 2
-Z       WORD 3
-END MAIN
