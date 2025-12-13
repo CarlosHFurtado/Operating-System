@@ -1,6 +1,8 @@
 package interfacesicxe;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import ProcessadorDeMacros.ProcessadorDeMacros;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,11 +15,10 @@ public class InterfaceProcessadorMacros extends JFrame {
     private JLabel statusLabel;
     private JButton btnProcessar;
 
-    //️ Substitir essa referencia pela classe real de processamento
     private ProcessadorDeMacros processador;
 
     public InterfaceProcessadorMacros() {
-        this.processador = new ProcessadorDeMacros(); // substituir depois
+        this.processador = new ProcessadorDeMacros();
         FlatLightLaf.setup();
         configurarJanela();
         criarComponentes();
@@ -36,16 +37,13 @@ public class InterfaceProcessadorMacros extends JFrame {
         statusLabel = new JLabel("Selecione um arquivo assembly contendo macros para processar.");
         statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        statusLabel.setForeground(Color.BLACK);
 
-        // Painel de seleção de arquivo
         JPanel painelArquivo = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         painelArquivo.setOpaque(false);
 
         JLabel label = new JLabel("Arquivo de entrada:");
         campoArquivoEntrada = new JTextField(32);
         campoArquivoEntrada.setEditable(false);
-        campoArquivoEntrada.setBackground(Color.WHITE);
 
         JButton btnSelecionar = new JButton("Selecionar...");
         btnProcessar = new JButton("Processar Macros");
@@ -61,7 +59,6 @@ public class InterfaceProcessadorMacros extends JFrame {
 
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        toolBar.setBackground(new Color(240, 245, 255));
 
         JButton btnFechar = new JButton("Fechar");
         btnFechar.addActionListener(e -> dispose());
@@ -76,6 +73,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Escolha o arquivo assembly com macros");
         chooser.setFileFilter(new FileNameExtensionFilter("Arquivos Assembly", "asm", "ASM"));
+
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             File arquivo = chooser.getSelectedFile();
             campoArquivoEntrada.setText(arquivo.getAbsolutePath());
@@ -94,43 +92,26 @@ public class InterfaceProcessadorMacros extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 processador.processar(caminhoEntrada);
-
-                File diretorio = new File(caminhoEntrada).getParentFile();
-                File arquivoSaida = new File(diretorio, "MASMAPRG.ASM");
-
-                statusLabel.setText("Processamento concluído. Arquivo gerado: MASMAPRG.ASM");
+                statusLabel.setText("Processamento concluído. Arquivo MASMAPRG.ASM gerado.");
                 JOptionPane.showMessageDialog(this,
-                    "Macros processadas com sucesso!\nArquivo gerado:\n" + arquivoSaida.getAbsolutePath(),
-                    "Concluído",
-                    JOptionPane.INFORMATION_MESSAGE);
+                        "Macros processadas com sucesso!\nArquivo gerado: MASMAPRG.ASM",
+                        "Concluído",
+                        JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 statusLabel.setText("Erro durante o processamento.");
                 JOptionPane.showMessageDialog(this,
-                    "Falha no processamento de macros:\n" + (ex.getMessage() != null ? ex.getMessage() : "Erro desconhecido."),
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
+                        "Erro: " + ex.getMessage(),
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
             } finally {
                 btnProcessar.setEnabled(true);
             }
         });
     }
 
-    //️ SIMULAÇÃO: Substituir pela classe real
-    static class ProcessadorDeMacros {
-        public void processar(String caminhoArquivoEntrada) throws Exception {
-
-            File f = new File(caminhoArquivoEntrada);
-            if (!f.exists()) {
-                throw new Exception("Arquivo de entrada não encontrado.");
-            }
-        }
-    }
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            try {
-                FlatLightLaf.setup();
-            } catch (Exception ignored) {}
+            FlatLightLaf.setup();
             new InterfaceProcessadorMacros().setVisible(true);
         });
     }

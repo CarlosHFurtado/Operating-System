@@ -34,4 +34,8 @@ public class Macro {
     public List<String> getCorpo() {
         return corpo;
     }
+
+    public void adicionarLinha(String linha) {
+        corpo.add(linha);
+    }
 }
