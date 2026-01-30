@@ -2,38 +2,65 @@ package montador;
 
 
 import java.util.List;
-import java.util.List;
 import java.util.ArrayList;
 import ProcessadorDeMacros.ProcessadorMacros;
 
 public class Montador {
-    
+
     private TabelaSimbolos tabelaSimbolos;
-    private int locationCounter; 
-    private Integer baseRegisterValue = null; 
-    private StringBuilder objectCodeBuilder; 
-    private List<String> instructionObjectCodes; 
-    
+    private int locationCounter;
+    private Integer baseRegisterValue = null;
+
+    private List<String> instructionObjectCodes;
+
     private int enderecoInicial;
     private int tamanhoPrograma;
     private String nomePrograma;
-    
+
+    // ===== NOVOS CAMPOS PARA O LIGADOR =====
+    private List<Simbolo> tabelaDefinicoes = new ArrayList<>();
+    private List<UsoExterno> tabelaUsos = new ArrayList<>();
+    private List<EntradaRelocacao> tabelaRelocacao = new ArrayList<>();
+    private int enderecoBase = 0;
+
     public Montador() {
-        
         this.tabelaSimbolos = new TabelaSimbolos();
-        this.locationCounter = 0; 
-        this.objectCodeBuilder = new StringBuilder(); 
-        this.instructionObjectCodes = new ArrayList<>(); 
-        
+        this.locationCounter = 0;
+        this.instructionObjectCodes = new ArrayList<>();
+    }
+    
+    public List<String> getCodigoObjeto() {
+        return instructionObjectCodes;
+    }
+    
+    public List<Simbolo> getDEFTAB() {
+        return tabelaDefinicoes;
+    }
+
+    public List<UsoExterno> getUSETAB() {
+        return tabelaUsos;
+    }
+
+    public List<EntradaRelocacao> getRELATAB() {
+        return tabelaRelocacao;
+    }
+
+    public int getTamanhoPrograma() {
+        return tamanhoPrograma;
+    }
+
+    public void setEnderecoBase(int base) {
+        this.enderecoBase = base;
     }
 
     public String montar(List<String> codigoSource) {
-
         ProcessadorMacros macroProcessor = new ProcessadorMacros();
         List<String> codigoExpandido = macroProcessor.processar(codigoSource);
 
-        objectCodeBuilder.setLength(0);
         instructionObjectCodes.clear();
+        tabelaDefinicoes.clear();
+        tabelaUsos.clear();
+        tabelaRelocacao.clear();
 
         passo1(codigoExpandido);
         passo2(codigoExpandido);
@@ -42,81 +69,44 @@ public class Montador {
     }
     
     public void passo1(List<String> codigoFonte) {
-        
-        for (String linhaBruta : codigoFonte) {
-            
-            LinhaInstrucao linha = Parser.parseLine(linhaBruta);
 
-            if (linha.isEmpty()) continue; 
+        for (String linhaBruta : codigoFonte) {
+
+            LinhaInstrucao linha = Parser.parseLine(linhaBruta);
+            if (linha.isEmpty()) continue;
 
             String label = linha.getLabel();
-            String opcode = linha.getOpcode().toUpperCase(); 
-            String operandos = linha.getOperandos();
+            String opcode = linha.getOpcode().toUpperCase();
 
             if (opcode.equals("START")) {
-                
-                nomePrograma = (label != null ? label : "PROG"); 
-                
-                try {
-                    
-                    int startAddress = Integer.parseInt(operandos, 16); 
-                    locationCounter = startAddress;
-                    enderecoInicial = startAddress;
-                    
-                } catch (Exception e) {
-                    
-                    locationCounter = 0;
-                    enderecoInicial = 0;
-                    
-                }
-                
-                continue; 
-                
+                enderecoInicial = Integer.parseInt(linha.getOperandos(), 16);
+                locationCounter = enderecoInicial;
+                continue;
             }
 
             if (label != null) {
-                
                 tabelaSimbolos.inserir(label, locationCounter, "LABEL");
-                
+
+                // >>> TODO símbolo é público (modelo simples)
+                tabelaDefinicoes.add(
+                    new Simbolo(label, locationCounter, "PUBLIC")
+                );
             }
-            
-            int tamanhoInstrucao = 0;
-            
+
+            int tamanho = 0;
+
             if (TabelaInstrucoesMaquina.isMachineOp(opcode)) {
-                
-                if (linha.isExtended()) { 
-                    
-                    tamanhoInstrucao = 4;
-                    
-                } else {
-                    
-                    InstrucaoMaquina inst = TabelaInstrucoesMaquina.getMachineOp(opcode);
-                    tamanhoInstrucao = inst.getTamanhoBytes();
-                    
-                }
-                
+                tamanho = linha.isExtended() ? 4 :
+                        TabelaInstrucoesMaquina.getMachineOp(opcode).getTamanhoBytes();
             } else if (TabelaPseudoInstrucoes.isPseudoOp(opcode)) {
-                
-                tamanhoInstrucao = calcularTamanhoPseudoOp(opcode, linha.getOperandos());
-                
-                if (opcode.equals("END")) {
-                    
-                    tamanhoPrograma = locationCounter - enderecoInicial;
-                    break; 
-                    
-                }
-                
-            } 
-            
-            locationCounter += tamanhoInstrucao; 
-            
+                tamanho = calcularTamanhoPseudoOp(opcode, linha.getOperandos());
+                if (opcode.equals("END")) break;
+            }
+
+            locationCounter += tamanho;
         }
-        
-        if (tamanhoPrograma == 0) {
-            
-              tamanhoPrograma = locationCounter - enderecoInicial;
-              
-        }
+
+        tamanhoPrograma = locationCounter - enderecoInicial;
     }
 
     private int calcularTamanhoPseudoOp(String opcode, String operandos) {
@@ -170,116 +160,57 @@ public class Montador {
     }
 
     public void passo2(List<String> codigoFonte) {
-        
-        String registroT = ""; 
-        
-        int lcInicioT = this.enderecoInicial; 
-        
-        this.locationCounter = this.enderecoInicial;
-    
-        for (String linhaBruta : codigoFonte) {
-            
-            LinhaInstrucao linha = Parser.parseLine(linhaBruta);
-            
-            if (linha.isEmpty()) continue;
-            
-            String opcode = linha.getOpcode().toUpperCase();
 
+        locationCounter = enderecoInicial;
+
+        for (String linhaBruta : codigoFonte) {
+
+            LinhaInstrucao linha = Parser.parseLine(linhaBruta);
+            if (linha.isEmpty()) continue;
+
+            String opcode = linha.getOpcode().toUpperCase();
             String operandos = linha.getOperandos();
-            
-            if (opcode.equals("START")) continue; 
-            
-            int tamanho = 0; 
-            
-            String codigoObjeto = ""; 
-            
+
+            if (opcode.equals("START")) continue;
+
+            String codigoObjeto = "";
+            int tamanho = 0;
+
             if (TabelaInstrucoesMaquina.isMachineOp(opcode)) {
-                
+
                 InstrucaoMaquina inst = TabelaInstrucoesMaquina.getMachineOp(opcode);
-                
-                if (linha.isExtended()) { 
-                    
+
+                if (linha.isExtended()) {
                     tamanho = 4;
-                    codigoObjeto = montarFormato4(inst, operandos); 
-                    
+                    codigoObjeto = montarFormato4(inst, operandos);
+
+                    tabelaRelocacao.add(
+                        new EntradaRelocacao(locationCounter, 4)
+                    );
                 } else {
-                    
                     tamanho = inst.getTamanhoBytes();
-                    codigoObjeto = montarInstrucao(inst, operandos, this.locationCounter);
-                    
+                    codigoObjeto = montarFormato3(inst, operandos, locationCounter);
                 }
 
             } else if (TabelaPseudoInstrucoes.isPseudoOp(opcode)) {
-                
-                tamanho = calcularTamanhoPseudoOp(opcode, operandos); 
-                
-                switch (opcode) {
-                    
-                    case "WORD":
-                        
-                        codigoObjeto = montarWord(operandos);
-                        break;
-                        
-                    case "BYTE":
-                        
-                        codigoObjeto = montarByte(operandos);
-                        break;
-                        
-                    case "BASE":
-                        
-                        if (operandos != null) {
-                            
-                            baseRegisterValue = tabelaSimbolos.getEndereco(operandos.trim());
-                            
-                        }
-                        
-                    case "RESW":
-                    case "RESB":
-                        
-                        if (!registroT.isEmpty()) {
-                            
-                            objectCodeBuilder.append(gerarRegistroT(lcInicioT, registroT)).append("\n");
-                            registroT = "";
-                            lcInicioT = this.locationCounter + tamanho; 
-                            
-                        }
-                        
-                        break;
-                        
-                    case "END":
-                        
-                        if (!registroT.isEmpty()) {
-                            
-                            objectCodeBuilder.append(gerarRegistroT(lcInicioT, registroT)).append("\n");
-                        
-                        }
-                        
-                        objectCodeBuilder.append(gerarRegistroE(enderecoInicial));
-                        
-                        return;
-                        
+
+                tamanho = calcularTamanhoPseudoOp(opcode, operandos);
+
+                if (opcode.equals("WORD")) {
+                    codigoObjeto = montarWord(operandos);
+                    tabelaRelocacao.add(
+                        new EntradaRelocacao(locationCounter, 3)
+                    );
                 }
+
+                if (opcode.equals("END")) break;
             }
-            
+
             if (!codigoObjeto.isEmpty()) {
-                
-                instructionObjectCodes.add(codigoObjeto); 
-
-                if (registroT.length() + codigoObjeto.length() > 60) {
-                    
-                    objectCodeBuilder.append(gerarRegistroT(lcInicioT, registroT)).append("\n");
-                    registroT = codigoObjeto;
-                    lcInicioT = this.locationCounter;
-                    
-                } else {
-                    
-                    registroT += codigoObjeto;
-                    
-                }
+                instructionObjectCodes.add(codigoObjeto);
             }
 
-            this.locationCounter += tamanho;
-            
+            locationCounter += tamanho;
         }
     }
 
