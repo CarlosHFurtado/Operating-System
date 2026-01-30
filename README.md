@@ -2,7 +2,7 @@
 
 ***
 
-<img align="right" src="https://png.pngtree.com/png-vector/20241121/ourmid/pngtree-christmas-tree-decorated-with-lights-and-gifts-a-vibrant-surrounded-by-png-image_14517748.png" alt="Imagem 1" style="border-radius: 10px; margin: 5px;" height="100">
+<img align="right" src="https://i.pinimg.com/1200x/27/fa/d1/27fad1c813e9f6ddb642d7e88c8eb923.jpg" alt="Imagem 1" style="border-radius: 10px; margin: 5px;" height="100">
 
 
 _Este repositório contém o projeto em desenvolvimento da disciplina de Programação de Sistemas que prevê a implementação do Computador Hipotético (SIC/XE)_
