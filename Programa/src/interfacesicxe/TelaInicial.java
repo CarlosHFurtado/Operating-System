@@ -1,10 +1,20 @@
 package interfacesicxe;
 
 import com.formdev.flatlaf.FlatLightLaf;
+
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.net.URI;
 
 public class TelaInicial extends JDialog {
+
+    private static final Color BG = new Color(92, 107, 115);
+    private static final Color FG = new Color(245, 245, 245);
+    private static final Color LINE = new Color(220, 220, 220);
+
+    private static final String GITHUB_URL =
+            "https://github.com/CarlosHFurtado/Operating-System/tree/main";
 
     public TelaInicial(JFrame parent) {
         super(parent, "Bem-vindo ao Simulador SIC/XE", true);
@@ -14,64 +24,115 @@ public class TelaInicial extends JDialog {
     }
 
     private void configurarTela() {
-        setSize(600, 400);
+        setSize(700, 450);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        getContentPane().setBackground(new Color(227, 242, 253));
+        setUndecorated(true); 
+        getContentPane().setBackground(BG);
     }
 
     private void criarComponentes() {
-        setLayout(new BorderLayout(20, 20));
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(BG);
+        root.setBorder(new EmptyBorder(20, 30, 20, 30));
+        setContentPane(root);
 
-        // Painel superior com título
-        JLabel lblTitulo = new JLabel("Simulador SIC/XE", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblTitulo.setForeground(new Color(40, 60, 120));
-        add(lblTitulo, BorderLayout.NORTH);
+        JPanel top = new JPanel(new BorderLayout());
+        top.setBackground(BG);
 
-        // Painel central com informações dos autores
-        JPanel painelAutores = new JPanel(new GridLayout(0, 1, 10, 10));
-        painelAutores.setBackground(new Color(240, 245, 255));
-        painelAutores.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        JButton btnClose = new JButton("X");
+        btnClose.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        btnClose.setForeground(FG); // branco
+        btnClose.setBackground(BG);
+        btnClose.setBorderPainted(false);
+        btnClose.setFocusPainted(false);
+        btnClose.setContentAreaFilled(false);
+        btnClose.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnClose.addActionListener(e -> dispose());
 
-        String[] autores = {
-            "Gerson",
-            "Henrique",
-            "Gustavo",
-            "Carlos",
-            "Dienifer",
-            "Maria Eduarda"
-        };
+        top.add(btnClose, BorderLayout.EAST);
+        root.add(top, BorderLayout.NORTH);
 
-        for (String autor : autores) {
-            JLabel lblAutor = new JLabel(autor);
-            lblAutor.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            lblAutor.setForeground(new Color(33, 33, 33));
-            painelAutores.add(lblAutor);
-        }
+        JPanel center = new JPanel();
+        center.setBackground(BG);
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+        root.add(center, BorderLayout.CENTER);
 
-        add(painelAutores, BorderLayout.CENTER);
+        JLabel lblBemVindos = new JLabel("Bem-Vindos ao");
+        lblBemVindos.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblBemVindos.setForeground(FG);
+        lblBemVindos.setFont(new Font("Segoe UI", Font.BOLD, 18));
 
-        // Painel inferior com botão
-        JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton btnIniciar = new JButton("▶ Iniciar Simulador");
-        btnIniciar.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btnIniciar.setPreferredSize(new Dimension(200, 40));
-        btnIniciar.setBackground(new Color(6,8,11));
-        btnIniciar.setForeground(Color.WHITE);
-        btnIniciar.setFocusPainted(false);
+        JLabel lblTitulo = new JLabel("Simulador SIC/XE");
+        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitulo.setForeground(FG);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 42));
+
+        JSeparator sep = new JSeparator();
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 2));
+        sep.setForeground(LINE);
+        sep.setBackground(LINE);
+
+        JButton btnColaboradores = createMenuButton("COLABORADORES");
+        btnColaboradores.addActionListener(e -> new TelaColaboradores(this).setVisible(true));
+
+        JButton btnGitHub = createMenuButton("GITHUB");
+        btnGitHub.addActionListener(e -> abrirNoNavegador(GITHUB_URL));
+
+        JButton btnIniciar = createMenuButton("INICIAR SIMULADOR");
         btnIniciar.addActionListener(e -> {
-            dispose(); // Fecha a tela inicial
-            new InterfaceSICXE().setVisible(true); // Abre a interface principal
+            dispose();
+            new InterfaceSICXE().setVisible(true);
         });
 
-        painelBotao.add(btnIniciar);
-        add(painelBotao, BorderLayout.SOUTH);
+        center.add(Box.createVerticalStrut(30));
+        center.add(lblBemVindos);
+        center.add(Box.createVerticalStrut(6));
+        center.add(lblTitulo);
+        center.add(Box.createVerticalStrut(25));
+        center.add(sep);
+        center.add(Box.createVerticalStrut(35));
+
+        center.add(btnColaboradores);
+        center.add(Box.createVerticalStrut(16));
+        center.add(btnGitHub);
+        center.add(Box.createVerticalStrut(16));
+        center.add(btnIniciar);
+
+        center.add(Box.createVerticalGlue());
+    }
+
+    private JButton createMenuButton(String text) {
+        JButton b = new JButton(text);
+        b.setAlignmentX(Component.CENTER_ALIGNMENT);
+        b.setPreferredSize(new Dimension(260, 42));
+        b.setMaximumSize(new Dimension(260, 42));
+        b.setFont(new Font("Segoe UI", Font.PLAIN, 13)); 
+        b.setBackground(new Color(245, 245, 245));
+        b.setForeground(BG); 
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return b;
+    }
+
+    private void abrirNoNavegador(String url) {
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(new URI(url));
+            } else {
+                JOptionPane.showMessageDialog(this, "Não foi possível abrir o navegador.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao abrir o link:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+            FlatLightLaf.setup();
             JFrame frame = new JFrame();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             new TelaInicial(frame).setVisible(true);

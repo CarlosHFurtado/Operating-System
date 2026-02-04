@@ -25,7 +25,7 @@ public class ProcessadorMacros {
             String linha = codigoFonte.get(i);
             String trim = linha.trim();
 
-            if (trim.isEmpty() || trim.startsWith(";")) continue;
+            if (trim.isEmpty() || trim.startsWith(";") || trim.startsWith(".")) continue;
 
             if (ehInicioDeMacro(trim)) {
                 iniciarMacro(trim);
