@@ -93,7 +93,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         painelCentral.add(btnProcessar, gbc);
         gbc.gridwidth = 1;
 
-        // ===== Arquivo de saída + botão Abrir =====
+        
         JLabel lblSaida = new JLabel("Arquivo de Saída:");
         lblSaida.setForeground(textoBranco);
 
@@ -121,7 +121,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         toolBar.setFloatable(true);
        
 
-        // ===== Ações =====
+      
         btnSelecionar.addActionListener(this::selecionarArquivo);
         btnProcessar.addActionListener(this::executarProcessamento);
         btnAbrirSaida.addActionListener(e -> abrirSaida());
@@ -141,7 +141,7 @@ public class InterfaceProcessadorMacros extends JFrame {
             campoArquivoEntrada.setText(arquivo.getAbsolutePath());
             btnProcessar.setEnabled(true);
 
-            // reseta a saída até processar de novo
+           
             arquivoSaidaAtual = null;
             campoArquivoSaida.setText("");
             btnAbrirSaida.setEnabled(false);
@@ -154,7 +154,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         String caminhoEntrada = campoArquivoEntrada.getText().trim();
         if (caminhoEntrada.isEmpty()) return;
 
-        statusLabel.setText(" "); // sem mensagem fixa
+        statusLabel.setText(" "); 
         btnProcessar.setEnabled(false);
 
         SwingUtilities.invokeLater(() -> {

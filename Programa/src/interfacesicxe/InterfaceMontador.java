@@ -11,8 +11,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.util.List;
 import java.util.Arrays;
-import montador.Montador; 
-// Importações de Parser e LinhaInstrucao foram mantidas, mas não utilizadas diretamente nesta lógica de UI.
+import montador.MontadorSICXE; 
 
 public class InterfaceMontador extends JFrame {
 
@@ -20,10 +19,10 @@ public class InterfaceMontador extends JFrame {
     private JTextArea saidaObjeto;
     private JLabel statusLabel;
     
-    // Campo para a referência da interface principal
+    
     private InterfaceSICXE interfacePrincipal; 
 
-    // NOVO CONSTRUTOR: Recebe a referência da interface principal
+    
     public InterfaceMontador(InterfaceSICXE interfacePrincipal) { 
         this.interfacePrincipal = interfacePrincipal;
         FlatLightLaf.setup();
@@ -31,7 +30,7 @@ public class InterfaceMontador extends JFrame {
         criarComponentes();
     }
     
-    // CONSTRUTOR PADRÃO (para uso isolado)
+    
     public InterfaceMontador() { 
         this(null); 
     }
@@ -63,16 +62,16 @@ public class InterfaceMontador extends JFrame {
         JScrollPane scrollEditor = new JScrollPane(editorAssembly);
         JScrollPane scrollSaida = new JScrollPane(saidaObjeto);
 
-        // Barra de ferramentas
+        
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
         toolBar.setBackground(new Color(240, 245, 255));
 
         JButton btnMontar = new JButton("Montar");
         JButton btnCarregar = new JButton("Carregar .asm");
-        JButton btnSalvar = new JButton("Salvar .txt"); // Alterado de .obj para .txt
+        JButton btnSalvar = new JButton("Salvar .txt"); 
         
-        // NOVO BOTÃO
+       
         JButton btnCarregarDireto = new JButton("Carregar no Executor"); 
         
         JButton btnLimpar = new JButton("Limpar Tudo");
@@ -82,7 +81,7 @@ public class InterfaceMontador extends JFrame {
         toolBar.add(btnCarregar);
         toolBar.add(btnSalvar);
         
-        // ADICIONANDO O NOVO BOTÃO
+ 
         toolBar.add(btnCarregarDireto); 
         
         toolBar.addSeparator();
@@ -90,18 +89,17 @@ public class InterfaceMontador extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnFechar);
 
-        // Ações
+        
         btnMontar.addActionListener(e -> simularMontagem()); 
         btnCarregar.addActionListener(this::carregarArquivoAssembly);
         btnSalvar.addActionListener(this::salvarArquivoObjeto); 
         
-        // AÇÃO DO NOVO BOTÃO
         btnCarregarDireto.addActionListener(this::carregarDiretoNoExecutor); 
         
         btnLimpar.addActionListener(e -> limparCampos());
         btnFechar.addActionListener(e -> dispose());
 
-        // Layout central
+       
         JSplitPane divisor = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollEditor, scrollSaida);
         divisor.setDividerLocation(470);
         divisor.setResizeWeight(0.5);
@@ -111,55 +109,63 @@ public class InterfaceMontador extends JFrame {
         add(statusLabel, BorderLayout.SOUTH);
     }
     
-    // MÉTODO AUXILIAR PARA MONTAR E RETORNAR O CÓDIGO OBJETO
-    private String montarEAtualizarSaida() {
-        String codigo = editorAssembly.getText(); 
-        if (codigo.trim().isEmpty()) {
-            exibirErro("Código vazio", "Insira código assembly antes de montar.");
-            saidaObjeto.setText("");
-            statusLabel.setText("Pronto para montar.");
-            return null;
-        }
-
-        List<String> codigoSource = Arrays.asList(codigo.split("\\r?\\n"));
-        Montador montador = new Montador();
-        
-        String saidaMontador;
-        
-        try {
-            saidaMontador = montador.montar(codigoSource); 
-            
-            saidaObjeto.setText(saidaMontador);
-            
-            if (saidaMontador.contains("ERRO") || saidaMontador.contains("falhou")) { 
-                statusLabel.setText("ERRO: Montagem falhou. Verifique a saída.");
-                return null; 
-            }
-
-            statusLabel.setText("Montagem concluída! Código-objeto gerado com sucesso.");
-            return saidaMontador;
-            
-        } catch (Exception ex) {
-            saidaMontador = "ERRO CRÍTICO NA MONTAGEM: " + ex.getMessage() + "\n";
-            saidaObjeto.setText(saidaMontador);
-            statusLabel.setText("ERRO: Montagem falhou. Verifique a saída.");
-            exibirErro("Erro de Montagem", "Ocorreu um erro crítico durante o processo. Veja os detalhes na área de saída.");
-            return null;
-        }
+    
+private String montarEAtualizarSaida() {
+    String codigo = editorAssembly.getText(); 
+    if (codigo.trim().isEmpty()) {
+        exibirErro("Código vazio", "Insira código assembly antes de montar.");
+        saidaObjeto.setText("");
+        statusLabel.setText("Pronto para montar.");
+        return null;
     }
+
+    List<String> codigoSource = Arrays.asList(codigo.split("\\r?\\n"));
+    MontadorSICXE montador = new MontadorSICXE();
+    
+    try {
+        
+        MontadorSICXE.ResultadoMontagem resultado = montador.montar(codigoSource);
+        
+        String saidaMontador = resultado.programaObjeto; 
+        saidaObjeto.setText(saidaMontador);
+        
+        if (!resultado.erros.isEmpty()) {
+            
+            StringBuilder erroText = new StringBuilder();
+            erroText.append("ERROS ENCONTRADOS:\n");
+            for (String erro : resultado.erros) {
+                erroText.append(erro).append("\n");
+            }
+            erroText.append("\n").append(saidaMontador);
+            saidaObjeto.setText(erroText.toString());
+            statusLabel.setText("ERRO: Montagem com erros. Verifique a saída.");
+            return null;
+        }
+
+        statusLabel.setText("Montagem concluída! Código-objeto gerado com sucesso.");
+        return saidaMontador;
+        
+    } catch (Exception ex) {
+        String erroMsg = "ERRO CRÍTICO NA MONTAGEM: " + ex.getMessage() + "\n";
+        saidaObjeto.setText(erroMsg);
+        statusLabel.setText("ERRO: Montagem falhou. Verifique a saída.");
+        exibirErro("Erro de Montagem", "Ocorreu um erro crítico durante o processo: " + ex.getMessage());
+        return null;
+    }
+}
 
     private void simularMontagem() {
         montarEAtualizarSaida(); 
     }
     
-    // MÉTODO PARA CARREGAR NO EXECUTOR
+  
     private void carregarDiretoNoExecutor(ActionEvent e) {
         if (interfacePrincipal == null) {
             exibirErro("Erro de Conexão", "A interface principal do simulador não foi conectada. Use o botão 'Abrir Montador' na interface principal.");
             return;
         }
         
-        // 1. Monta o código e obtém a string do código objeto
+        
         String objectCode = montarEAtualizarSaida(); 
         
         if (objectCode == null || objectCode.contains("ERRO")) { 
@@ -167,7 +173,7 @@ public class InterfaceMontador extends JFrame {
         }
         
         try {
-            // 2. Chama o NOVO método na InterfaceSICXE para carregar a string
+            
             interfacePrincipal.carregarProgramaMontado(objectCode); 
             
             JOptionPane.showMessageDialog(this, 
@@ -232,7 +238,7 @@ public class InterfaceMontador extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try { FlatLightLaf.setup(); } catch (Exception ignored) {}
-            // Use o construtor InterfaceMontador() para uso isolado
+            
             new InterfaceMontador().setVisible(true); 
         });
     }
