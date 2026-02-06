@@ -93,7 +93,7 @@ public class InterfaceLigador extends JFrame {
         faixaControles.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, CINZA_LINHA));
 
         JLabel lblModo = criarLabelTopo("Modo");
-        comboModo = new JComboBox<>(new String[]{"LIGADOR", "LIGADOR RELOCADOR"});
+        comboModo = new JComboBox<>(new String[]{"LIGADOR", "LIGADOR_RELOCADOR"});
         comboModo.setPreferredSize(new Dimension(220, 28));
 
         JLabel lblEnd = criarLabelTopo("Endereço de Carga:");

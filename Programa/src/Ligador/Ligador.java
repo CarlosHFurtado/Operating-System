@@ -2,7 +2,6 @@ package ligador;
 
 import java.util.*;
 
-
 public final class Ligador {
 
     public enum Modo {
