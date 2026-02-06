@@ -16,7 +16,7 @@ public class TelaColaboradores extends JDialog {
             {"MARIA EDUARDO ATENCIO CÂNDIA",            "https://github.com/alpaca157"},
             {"DIENIFER BIERHALS LEDEBUHR",              "https://github.com/DLedebuhr"},
             {"GERSON FARIAS CLARA",                     "https://github.com/Gerson-Clara"},
-            {"GUSTAVO DOMÊNECH DE SOUZA",               "https://github.com/GustavoDomenech"},
+            {"GUSTAVO DOMENECH DE SOUZA",               "https://github.com/GustavoDomenech"},
             {"HENRIQUE VALEZA DOMINGUES",               "https://github.com/henriquevalezad"}
     };
 
