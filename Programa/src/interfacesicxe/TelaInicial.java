@@ -9,7 +9,7 @@ import java.net.URI;
 
 public class TelaInicial extends JDialog {
 
-    private static final Color BG = new Color(92, 107, 115);
+    private static final Color BG = new Color(63, 84, 114);
     private static final Color FG = new Color(245, 245, 245);
     private static final Color LINE = new Color(220, 220, 220);
 
