@@ -9,12 +9,10 @@ public final class Ligador {
         LIGADOR_RELOCADOR
     }
 
-   
-
     public static final class ResultadoLigacao {
-        public final String objetoLigado;   
-        public final byte[] memoria;        
-        public final int enderecoExecucao;  
+        public final String objetoLigado;
+        public final byte[] memoria;
+        public final int enderecoExecucao;
         public final List<String> erros;
 
         ResultadoLigacao(String objetoLigado, byte[] memoria, int enderecoExecucao, List<String> erros) {
@@ -39,34 +37,32 @@ public final class Ligador {
         }
     }
 
-    
-
     private static final class Modulo {
         String nome = "";
-        int startRel = 0;     
-        int length = 0;       
-        int csaddr = 0;      
-        Integer execRel = null; 
+        int startRel = 0;     // aqui vamos guardar o START do H (absoluto do módulo)
+        int length = 0;
+        int csaddr = 0;
+        Integer execRel = null; // E relativo ao startRel (após parse)
 
-        
-        Map<String, Integer> definicoesRel = new LinkedHashMap<>();  
-        Set<String> referencias = new LinkedHashSet<>();             
+        // D: agora guardamos offsets relativos ao startRel
+        Map<String, Integer> definicoesRel = new LinkedHashMap<>();
+        Set<String> referencias = new LinkedHashSet<>();
 
         List<TextRec> textos = new ArrayList<>();
         List<ModRec> mods = new ArrayList<>();
     }
 
     private static final class TextRec {
-        int startRel;
+        int startRel;   // offset relativo ao start do módulo
         byte[] bytes;
         TextRec(int startRel, byte[] bytes) { this.startRel = startRel; this.bytes = bytes; }
     }
 
     private static final class ModRec {
-        int addrRel;      
-        int nibbles;     
-        char sinal;       
-        String simbolo;   
+        int addrRel;     // offset relativo ao start do módulo
+        int nibbles;
+        char sinal;
+        String simbolo;
         ModRec(int addrRel, int nibbles, char sinal, String simbolo) {
             this.addrRel = addrRel;
             this.nibbles = nibbles;
@@ -75,9 +71,7 @@ public final class Ligador {
         }
     }
 
- 
-
-    private final Map<String, Integer> estab = new LinkedHashMap<>(); 
+    private final Map<String, Integer> estab = new LinkedHashMap<>();
     private final List<String> erros = new ArrayList<>();
     private final byte[] memoria;
 
@@ -89,8 +83,6 @@ public final class Ligador {
         this.memoria = new byte[tamanhoMemoriaBytes];
     }
 
- 
-
     public ResultadoLigacao ligar(List<String> objetos, Modo modo, int enderecoCarga) {
         erros.clear();
         estab.clear();
@@ -100,13 +92,12 @@ public final class Ligador {
             return new ResultadoLigacao("", null, 0, List.copyOf(erros));
         }
 
-       
         int csaddr = (modo == Modo.LIGADOR_RELOCADOR) ? enderecoCarga : 0;
 
+        // PASSO 1: ESTAB
         for (Modulo m : modulos) {
             m.csaddr = csaddr;
 
-            
             if (!m.nome.isBlank()) {
                 if (estab.containsKey(m.nome)) {
                     erro("Seção duplicada: " + m.nome);
@@ -115,7 +106,6 @@ public final class Ligador {
                 }
             }
 
-           
             for (var e : m.definicoesRel.entrySet()) {
                 String sym = e.getKey();
                 int abs = m.csaddr + e.getValue();
@@ -129,7 +119,7 @@ public final class Ligador {
             csaddr += m.length;
         }
 
-        
+        // PASSO 2: valida R
         for (Modulo m : modulos) {
             for (String ref : m.referencias) {
                 if (!estab.containsKey(ref)) {
@@ -138,14 +128,11 @@ public final class Ligador {
             }
         }
 
-       
         if (modo == Modo.LIGADOR_RELOCADOR) {
             Arrays.fill(memoria, (byte) 0);
             int execAbs = carregarEmMemoriaEAplicarMods(modulos);
 
-            // agora também gera OBJETO ABSOLUTO (sem M) para o CarregadorAbsoluto
             String objAbs = gerarObjetoAbsolutoSemM(modulos, execAbs);
-
             return new ResultadoLigacao(objAbs, memoria, execAbs, List.copyOf(erros));
 
         } else {
@@ -155,12 +142,9 @@ public final class Ligador {
         }
     }
 
-    
     public ResultadoLigacao ligar(String objeto) {
         return ligar(List.of(objeto), Modo.LIGADOR_RELOCADOR, 0);
     }
-
-   
 
     private int carregarEmMemoriaEAplicarMods(List<Modulo> modulos) {
         boolean execSetado = false;
@@ -168,21 +152,18 @@ public final class Ligador {
 
         for (Modulo m : modulos) {
 
-       
             for (TextRec t : m.textos) {
                 int addrAbs = m.csaddr + t.startRel;
                 escreverBytes(addrAbs, t.bytes);
             }
 
-       
             for (ModRec mr : m.mods) {
                 int addrCampoAbs = m.csaddr + mr.addrRel;
 
                 long valor = lerCampoNibbles(addrCampoAbs, mr.nibbles);
-                long ajuste = 0;
+                long ajuste;
 
                 if (mr.simbolo == null) {
-                    
                     ajuste = m.csaddr;
                 } else {
                     Integer symAbs = estab.get(mr.simbolo);
@@ -199,7 +180,6 @@ public final class Ligador {
                 escreverCampoNibbles(addrCampoAbs, mr.nibbles, novo);
             }
 
-           
             if (!execSetado) {
                 int eRel = (m.execRel == null) ? 0 : m.execRel;
                 execAbs = m.csaddr + eRel;
@@ -210,32 +190,47 @@ public final class Ligador {
         return execAbs;
     }
 
-    
-
     private String gerarObjetoLigadoRelocavel(List<Modulo> modulos) {
 
-       
         String nome = modulos.get(0).nome;
         if (nome == null || nome.isBlank()) nome = "PROG";
         if (nome.length() > 6) nome = nome.substring(0, 6);
         nome = String.format("%-6s", nome);
 
-        int tamanhoTotal = 0;
-        for (Modulo m : modulos) tamanhoTotal += m.length;
+        // tamanho pelo header
+        int tamanhoHeader = 0;
+        for (Modulo m : modulos) tamanhoHeader += m.length;
+
+        // tamanho real pelo último T (para não truncar)
+        int maxEnd = 0;
+        for (Modulo m : modulos) {
+            for (TextRec t : m.textos) {
+                int end = m.csaddr + t.startRel + t.bytes.length;
+                if (end > maxEnd) maxEnd = end;
+            }
+        }
+
+        int tamanhoTotal = Math.max(tamanhoHeader, maxEnd);
+
+        if (maxEnd > tamanhoHeader) {
+            erro("AVISO: Header menor que os registros T. Ajustando tamanho do programa ligado de " +
+                    String.format("%06X", tamanhoHeader) + " para " + String.format("%06X", tamanhoTotal) + ".");
+        }
 
         byte[] imagem = new byte[Math.max(tamanhoTotal, 1)];
         Arrays.fill(imagem, (byte) 0);
 
-       
         boolean[] bytePresente = new boolean[imagem.length];
 
-     
         for (Modulo m : modulos) {
             for (TextRec t : m.textos) {
-                int enderecoBaseZero = m.csaddr + t.startRel; 
+                int enderecoBaseZero = m.csaddr + t.startRel;
 
                 if (enderecoBaseZero < 0 || enderecoBaseZero + t.bytes.length > imagem.length) {
-                    erro("Texto fora do tamanho do programa ligado (base0).");
+                    erro("Texto fora do tamanho do programa ligado (base0). start=" +
+                            String.format("%06X", enderecoBaseZero) +
+                            " len=" + t.bytes.length +
+                            " tamanhoProg=" + String.format("%06X", imagem.length));
                     continue;
                 }
 
@@ -247,22 +242,20 @@ public final class Ligador {
             }
         }
 
-   
         List<ModRec> modsFinais = new ArrayList<>();
-
 
         for (Modulo m : modulos) {
             for (ModRec mr : m.mods) {
-                int addrCampo = m.csaddr + mr.addrRel; 
+                int addrCampo = m.csaddr + mr.addrRel;
                 if (addrCampo < 0 || addrCampo >= imagem.length) {
-                    erro("M aponta para fora do programa ligado (base0).");
+                    erro("M aponta para fora do programa ligado (base0). addr=" + String.format("%06X", addrCampo));
                     continue;
                 }
 
                 long valor = lerCampoNibblesImagem(imagem, addrCampo, mr.nibbles);
 
                 if (mr.simbolo != null) {
-                    Integer symAbsBase0 = estab.get(mr.simbolo); 
+                    Integer symAbsBase0 = estab.get(mr.simbolo);
                     if (symAbsBase0 == null) {
                         erro("Símbolo em M não encontrado no ESTAB (modo ligador): " + mr.simbolo);
                         symAbsBase0 = 0;
@@ -273,26 +266,19 @@ public final class Ligador {
                     long mask = mascaraNibbles(mr.nibbles);
                     long novo = (valor + ajuste) & mask;
                     escreverCampoNibblesImagem(imagem, addrCampo, mr.nibbles, novo);
-                } else {
-                    
                 }
 
-                
-                modsFinais.add(new ModRec(addrCampo, mr.nibbles, (char)0, null));
+                // mantém M simples (relocação) para o carregador relocador
+                modsFinais.add(new ModRec(addrCampo, mr.nibbles, (char) 0, null));
             }
         }
 
-        
         StringBuilder out = new StringBuilder();
         out.append(String.format("H%s%06X%06X%n", nome, 0, tamanhoTotal));
 
-       
         int i = 0;
         while (i < imagem.length) {
-          
-            while (i < imagem.length && !bytePresente[i]) {
-                i++;
-            }
+            while (i < imagem.length && !bytePresente[i]) i++;
             if (i >= imagem.length) break;
 
             int inicio = i;
@@ -330,13 +316,13 @@ public final class Ligador {
     }
 
     private int calcularExecucaoRelativa(List<Modulo> modulos) {
-        
         for (Modulo m : modulos) {
             if (m.execRel != null) return m.csaddr + m.execRel;
         }
         return 0;
     }
 
+    // ======= PARSE CORRIGIDO: tudo vira RELATIVO ao H.start =======
     private List<Modulo> parseModulos(List<String> objetos) {
         List<Modulo> out = new ArrayList<>();
 
@@ -357,23 +343,24 @@ public final class Ligador {
                     case 'H' -> {
                         if (l.length() < 19) { erro("H inválido: " + l); continue; }
                         m.nome = l.substring(1, 7).trim();
-                        m.startRel = Integer.parseInt(l.substring(7, 13), 16);
+                        m.startRel = Integer.parseInt(l.substring(7, 13), 16); // START ABS do módulo
                         m.length = Integer.parseInt(l.substring(13, 19), 16);
                     }
 
                     case 'D' -> {
                         String resto = l.substring(1);
-                       
                         for (int i = 0; i + 12 <= resto.length(); i += 12) {
                             String sym = resto.substring(i, i + 6).trim();
-                            int addr = Integer.parseInt(resto.substring(i + 6, i + 12), 16);
-                            if (!sym.isEmpty()) m.definicoesRel.put(sym, addr);
+                            int addrAbs = Integer.parseInt(resto.substring(i + 6, i + 12), 16);
+                            if (!sym.isEmpty()) {
+                                int addrRel = addrAbs - m.startRel;
+                                m.definicoesRel.put(sym, addrRel);
+                            }
                         }
                     }
 
                     case 'R' -> {
                         String resto = l.substring(1);
-                     
                         for (int i = 0; i + 6 <= resto.length(); i += 6) {
                             String sym = resto.substring(i, i + 6).trim();
                             if (!sym.isEmpty()) m.referencias.add(sym);
@@ -382,21 +369,23 @@ public final class Ligador {
 
                     case 'T' -> {
                         if (l.length() < 9) { erro("T inválido: " + l); continue; }
-                        int start = Integer.parseInt(l.substring(1, 7), 16);
+                        int startAbs = Integer.parseInt(l.substring(1, 7), 16);
                         int len = Integer.parseInt(l.substring(7, 9), 16);
                         String hex = l.substring(9).trim();
                         byte[] bytes = hexParaBytes(hex);
 
-                        
-                        if (bytes.length != len) { /* ignora */ }
+                        if (bytes.length != len) {
+                            erro("AVISO: T.len != bytes.length em " + l.substring(0, Math.min(l.length(), 25)) + "...");
+                        }
 
-                        m.textos.add(new TextRec(start, bytes));
+                        int startOffset = startAbs - m.startRel;
+                        m.textos.add(new TextRec(startOffset, bytes));
                     }
 
                     case 'M' -> {
                         if (l.length() < 9) { erro("M inválido: " + l); continue; }
 
-                        int addr = Integer.parseInt(l.substring(1, 7), 16);
+                        int addrAbs = Integer.parseInt(l.substring(1, 7), 16);
                         int nibbles = Integer.parseInt(l.substring(7, 9), 16);
 
                         char sinal = 0;
@@ -408,23 +397,27 @@ public final class Ligador {
                                 sinal = resto.charAt(0);
                                 simbolo = resto.substring(1).trim();
                                 if (sinal != '+' && sinal != '-') {
-                                    // formato sem sinal: assume '+'
                                     sinal = '+';
                                     simbolo = resto.trim();
                                 }
                             }
                         }
 
-                        m.mods.add(new ModRec(addr, nibbles, sinal, simbolo));
+                        int addrRel = addrAbs - m.startRel;
+                        m.mods.add(new ModRec(addrRel, nibbles, sinal, simbolo));
                     }
 
                     case 'E' -> {
-                        if (l.length() >= 7) m.execRel = Integer.parseInt(l.substring(1, 7), 16);
-                        else m.execRel = 0;
+                        if (l.length() >= 7) {
+                            int execAbs = Integer.parseInt(l.substring(1, 7), 16);
+                            m.execRel = execAbs - m.startRel;
+                        } else {
+                            m.execRel = 0;
+                        }
                     }
 
                     default -> {
-                        
+                        // ignora
                     }
                 }
             }
@@ -433,7 +426,7 @@ public final class Ligador {
         }
 
         return out;
-    }    
+    }
 
     private void escreverBytes(int addr, byte[] bytes) {
         if (addr < 0 || addr + bytes.length > memoria.length) {
@@ -471,7 +464,7 @@ public final class Ligador {
         long combinado;
 
         if ((nibbles % 2) == 1) {
-            long preserva = atual & ~mask; 
+            long preserva = atual & ~mask;
             combinado = preserva | (novoValor & mask);
         } else {
             combinado = (novoValor & mask);
@@ -528,7 +521,7 @@ public final class Ligador {
 
         byte[] out = new byte[h.length() / 2];
         for (int i = 0; i < out.length; i++) {
-            out[i] = (byte) Integer.parseInt(h.substring(2*i, 2*i+2), 16);
+            out[i] = (byte) Integer.parseInt(h.substring(2 * i, 2 * i + 2), 16);
         }
         return out;
     }
@@ -542,22 +535,30 @@ public final class Ligador {
     private void erro(String msg) {
         erros.add(msg);
     }
-    
+
     private String gerarObjetoAbsolutoSemM(List<Modulo> modulos, int execAbs) {
 
-        int inicio = modulos.get(0).csaddr; // no modo relocador = enderecoCarga
-        int tamanhoTotal = 0;
-        for (Modulo m : modulos) tamanhoTotal += m.length;
+        int inicio = modulos.get(0).csaddr;
+        int tamanhoHeader = 0;
+        for (Modulo m : modulos) tamanhoHeader += m.length;
+
+        // garante que cabe até o último T também (robustez)
+        int maxEnd = 0;
+        for (Modulo m : modulos) {
+            for (TextRec t : m.textos) {
+                int end = (m.csaddr - inicio) + t.startRel + t.bytes.length;
+                if (end > maxEnd) maxEnd = end;
+            }
+        }
+        int tamanhoTotal = Math.max(tamanhoHeader, maxEnd);
 
         String nome = modulos.get(0).nome;
         if (nome == null || nome.isBlank()) nome = "PROG";
         if (nome.length() > 6) nome = nome.substring(0, 6);
         nome = String.format("%-6s", nome);
 
-
         byte[] img = new byte[Math.max(tamanhoTotal, 1)];
         Arrays.fill(img, (byte) 0);
-
 
         for (Modulo m : modulos) {
             int baseOffset = m.csaddr - inicio;
@@ -571,7 +572,6 @@ public final class Ligador {
             }
         }
 
-
         for (Modulo m : modulos) {
             int baseOffset = m.csaddr - inicio;
 
@@ -582,7 +582,6 @@ public final class Ligador {
                 long ajuste;
 
                 if (mr.simbolo == null) {
-
                     ajuste = m.csaddr;
                 } else {
                     Integer symAbs = estab.get(mr.simbolo);
@@ -600,7 +599,6 @@ public final class Ligador {
             }
         }
 
-
         StringBuilder out = new StringBuilder();
         out.append(String.format("H%s%06X%06X%n", nome, inicio, tamanhoTotal));
 
@@ -613,7 +611,8 @@ public final class Ligador {
             int len = 0;
             while (i < img.length && len < 30) {
                 if (len > 0 && img[i] == 0) break;
-                i++; len++;
+                i++;
+                len++;
             }
 
             byte[] bloco = Arrays.copyOfRange(img, start, start + len);
@@ -623,5 +622,4 @@ public final class Ligador {
         out.append(String.format("E%06X%n", execAbs));
         return out.toString().trim();
     }
-
 }

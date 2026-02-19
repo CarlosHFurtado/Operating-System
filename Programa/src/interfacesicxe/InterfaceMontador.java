@@ -1,186 +1,247 @@
 package interfacesicxe;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import montador.MontadorSICXE;
+
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import java.util.List;
 import java.util.Arrays;
-import montador.MontadorSICXE; 
+import java.util.List;
 
 public class InterfaceMontador extends JFrame {
+
+    // Cores e estilo (mesmo padrão do Ligador)
+    private static final Color AZUL_FUNDO = new Color(63, 84, 114);
+    private static final Color AZUL_FUNDO_CAIXA = new Color(78, 101, 128);
+    private static final Color BRANCO = Color.WHITE;
+    private static final Color AZUL_TEXTO = new Color(32, 67, 103);
 
     private JTextArea editorAssembly;
     private JTextArea saidaObjeto;
     private JLabel statusLabel;
-    
-    
-    private InterfaceSICXE interfacePrincipal; 
 
-    
-    public InterfaceMontador(InterfaceSICXE interfacePrincipal) { 
+    private final InterfaceSICXE interfacePrincipal;
+
+    public InterfaceMontador(InterfaceSICXE interfacePrincipal) {
         this.interfacePrincipal = interfacePrincipal;
         FlatLightLaf.setup();
         configurarJanela();
         criarComponentes();
     }
-    
-    
-    public InterfaceMontador() { 
-        this(null); 
+
+    public InterfaceMontador() {
+        this(null);
     }
 
     private void configurarJanela() {
         setTitle("Montador SIC/XE - Duas Passagens");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
-        setSize(950, 650);
+        setLayout(new BorderLayout(0, 0));
+        setSize(980, 560);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(new Color(63, 84, 114));
     }
 
     private void criarComponentes() {
-        statusLabel = new JLabel("Pronto para montar.");
-        statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        statusLabel.setForeground(Color.BLACK);
+        JPanel root = new JPanel(new BorderLayout(0, 0));
+        root.setBackground(AZUL_FUNDO);
+        setContentPane(root);
+
+        // Barra de botões (estilo link, como no Ligador)
+        JPanel barraBotoes = new JPanel(new BorderLayout());
+        barraBotoes.setBackground(BRANCO);
+        barraBotoes.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+
+        JPanel botoesGrid = new JPanel(new GridLayout(1, 6, 18, 0));
+        botoesGrid.setBackground(BRANCO);
+
+        JButton btnCarregar = criarBotaoLink("Carregar .asm");
+        JButton btnMontar = criarBotaoLink("Montar");
+        JButton btnSalvar = criarBotaoLink("Salvar .txt");
+        JButton btnCarregarNoExecutor = criarBotaoLink("Carregar no Executor");
+        JButton btnLimpar = criarBotaoLink("Limpar");
+        JButton btnFechar = criarBotaoLink("Fechar");
+
+        botoesGrid.add(btnCarregar);
+        botoesGrid.add(btnMontar);
+        botoesGrid.add(btnSalvar);
+        botoesGrid.add(btnCarregarNoExecutor);
+        botoesGrid.add(btnLimpar);
+        botoesGrid.add(btnFechar);
+
+        barraBotoes.add(botoesGrid, BorderLayout.CENTER);
+
+        JPanel topo = new JPanel(new BorderLayout(0, 0));
+        topo.setBackground(BRANCO);
+        topo.add(barraBotoes, BorderLayout.NORTH);
+
+        // Centro: editor + saída
+        JPanel centro = new JPanel(new BorderLayout(12, 12));
+        centro.setBackground(AZUL_FUNDO);
+        centro.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         editorAssembly = new JTextArea();
-        editorAssembly.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        editorAssembly.setBorder(BorderFactory.createTitledBorder("Código Assembly (SIC/XE)"));
+        editorAssembly.setFont(new Font("Consolas", Font.PLAIN, 13));
+        editorAssembly.setBackground(AZUL_FUNDO_CAIXA);
+        editorAssembly.setForeground(BRANCO);
+        editorAssembly.setCaretColor(BRANCO);
+        editorAssembly.setTabSize(4);
+
+        JScrollPane scrollEditor = new JScrollPane(editorAssembly);
+        estilizarScrollAzul(scrollEditor);
+        scrollEditor.setBorder(criarBordaTituloBranca("Código Assembly (SIC/XE)"));
 
         saidaObjeto = new JTextArea();
         saidaObjeto.setEditable(false);
-        saidaObjeto.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
-        saidaObjeto.setBorder(BorderFactory.createTitledBorder("Código-Objeto Gerado (Formato SIC)"));
+        saidaObjeto.setFont(new Font("Consolas", Font.PLAIN, 13));
+        saidaObjeto.setBackground(AZUL_FUNDO_CAIXA);
+        saidaObjeto.setForeground(BRANCO);
+        saidaObjeto.setCaretColor(BRANCO);
 
-        JScrollPane scrollEditor = new JScrollPane(editorAssembly);
         JScrollPane scrollSaida = new JScrollPane(saidaObjeto);
+        estilizarScrollAzul(scrollSaida);
+        scrollSaida.setBorder(criarBordaTituloBranca("Saída (código-objeto)"));
 
-        
-        JToolBar toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-        toolBar.setBackground(new Color(240, 245, 255));
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollEditor, scrollSaida);
+        split.setDividerLocation(470);
+        split.setResizeWeight(0.5);
+        split.setBorder(BorderFactory.createLineBorder(BRANCO));
+        split.setBackground(AZUL_FUNDO);
+        split.setDividerSize(6);
 
-        JButton btnMontar = new JButton("Montar");
-        JButton btnCarregar = new JButton("Carregar .asm");
-        JButton btnSalvar = new JButton("Salvar .txt"); 
-        
-       
-        JButton btnCarregarDireto = new JButton("Carregar no Executor"); 
-        
-        JButton btnLimpar = new JButton("Limpar Tudo");
-        JButton btnFechar = new JButton("Fechar");
+        centro.add(split, BorderLayout.CENTER);
 
-        toolBar.add(btnMontar);
-        toolBar.add(btnCarregar);
-        toolBar.add(btnSalvar);
-        
- 
-        toolBar.add(btnCarregarDireto); 
-        
-        toolBar.addSeparator();
-        toolBar.add(btnLimpar);
-        toolBar.addSeparator();
-        toolBar.add(btnFechar);
+        // Rodapé / status
+        statusLabel = new JLabel("Pronto para montar.");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        statusLabel.setForeground(BRANCO);
+        statusLabel.setFont(statusLabel.getFont().deriveFont(Font.PLAIN, 12f));
 
-        
-        btnMontar.addActionListener(e -> simularMontagem()); 
+        JPanel rodape = new JPanel(new BorderLayout());
+        rodape.setBackground(AZUL_FUNDO);
+        rodape.add(statusLabel, BorderLayout.WEST);
+
+        root.add(topo, BorderLayout.NORTH);
+        root.add(centro, BorderLayout.CENTER);
+        root.add(rodape, BorderLayout.SOUTH);
+
+        // Ações
         btnCarregar.addActionListener(this::carregarArquivoAssembly);
-        btnSalvar.addActionListener(this::salvarArquivoObjeto); 
-        
-        btnCarregarDireto.addActionListener(this::carregarDiretoNoExecutor); 
-        
+        btnMontar.addActionListener(e -> simularMontagem());
+        btnSalvar.addActionListener(this::salvarArquivoObjeto);
+        btnCarregarNoExecutor.addActionListener(this::carregarDiretoNoExecutor);
         btnLimpar.addActionListener(e -> limparCampos());
         btnFechar.addActionListener(e -> dispose());
-
-       
-        JSplitPane divisor = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollEditor, scrollSaida);
-        divisor.setDividerLocation(470);
-        divisor.setResizeWeight(0.5);
-
-        add(toolBar, BorderLayout.NORTH);
-        add(divisor, BorderLayout.CENTER);
-        add(statusLabel, BorderLayout.SOUTH);
-    }
-    
-    
-private String montarEAtualizarSaida() {
-    String codigo = editorAssembly.getText(); 
-    if (codigo.trim().isEmpty()) {
-        exibirErro("Código vazio", "Insira código assembly antes de montar.");
-        saidaObjeto.setText("");
-        statusLabel.setText("Pronto para montar.");
-        return null;
     }
 
-    List<String> codigoSource = Arrays.asList(codigo.split("\\r?\\n"));
-    MontadorSICXE montador = new MontadorSICXE();
-    
-    try {
-        
-        MontadorSICXE.ResultadoMontagem resultado = montador.montar(codigoSource);
-        
-        String saidaMontador = resultado.programaObjeto; 
-        saidaObjeto.setText(saidaMontador);
-        
-        if (!resultado.erros.isEmpty()) {
-            
-            StringBuilder erroText = new StringBuilder();
-            erroText.append("ERROS ENCONTRADOS:\n");
-            for (String erro : resultado.erros) {
-                erroText.append(erro).append("\n");
-            }
-            erroText.append("\n").append(saidaMontador);
-            saidaObjeto.setText(erroText.toString());
-            statusLabel.setText("ERRO: Montagem com erros. Verifique a saída.");
+    private JButton criarBotaoLink(String texto) {
+        JButton b = new JButton(texto);
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(false);
+
+        b.setForeground(AZUL_TEXTO);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setHorizontalAlignment(SwingConstants.CENTER);
+
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseEntered(java.awt.event.MouseEvent e) { b.setForeground(new Color(20, 90, 160)); }
+            @Override public void mouseExited(java.awt.event.MouseEvent e) { b.setForeground(AZUL_TEXTO); }
+        });
+
+        return b;
+    }
+
+    private Border criarBordaTituloBranca(String titulo) {
+        return BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(BRANCO),
+                titulo,
+                0, 0,
+                new Font("Segoe UI", Font.BOLD, 12),
+                BRANCO
+        );
+    }
+
+    private void estilizarScrollAzul(JScrollPane sp) {
+        sp.getViewport().setBackground(AZUL_FUNDO_CAIXA);
+        sp.setBackground(AZUL_FUNDO_CAIXA);
+        sp.setBorder(BorderFactory.createLineBorder(BRANCO));
+        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+    }
+
+    private String montarEAtualizarSaida() {
+        String codigo = editorAssembly.getText();
+        if (codigo.trim().isEmpty()) {
+            exibirErro("Código vazio", "Insira código assembly antes de montar.");
+            saidaObjeto.setText("");
+            statusLabel.setText("Pronto para montar.");
             return null;
         }
 
-        statusLabel.setText("Montagem concluída! Código-objeto gerado com sucesso.");
-        return saidaMontador;
-        
-    } catch (Exception ex) {
-        String erroMsg = "ERRO CRÍTICO NA MONTAGEM: " + ex.getMessage() + "\n";
-        saidaObjeto.setText(erroMsg);
-        statusLabel.setText("ERRO: Montagem falhou. Verifique a saída.");
-        exibirErro("Erro de Montagem", "Ocorreu um erro crítico durante o processo: " + ex.getMessage());
-        return null;
+        List<String> codigoSource = Arrays.asList(codigo.split("\\r?\\n"));
+        MontadorSICXE montador = new MontadorSICXE();
+
+        try {
+            MontadorSICXE.ResultadoMontagem resultado = montador.montar(codigoSource);
+
+            String saidaMontador = resultado.programaObjeto;
+            saidaObjeto.setText(saidaMontador);
+
+            if (!resultado.erros.isEmpty()) {
+                StringBuilder erroText = new StringBuilder();
+                erroText.append("ERROS ENCONTRADOS:\n");
+                for (String erro : resultado.erros) {
+                    erroText.append(erro).append("\n");
+                }
+                erroText.append("\n").append(saidaMontador);
+                saidaObjeto.setText(erroText.toString());
+                statusLabel.setText("ERRO: Montagem com erros. Verifique a saída.");
+                return null;
+            }
+
+            statusLabel.setText("Montagem concluída! Código-objeto gerado com sucesso.");
+            return saidaMontador;
+
+        } catch (Exception ex) {
+            String erroMsg = "ERRO CRÍTICO NA MONTAGEM: " + ex.getMessage() + "\n";
+            saidaObjeto.setText(erroMsg);
+            statusLabel.setText("ERRO: Montagem falhou. Verifique a saída.");
+            exibirErro("Erro de Montagem", "Ocorreu um erro crítico durante o processo: " + ex.getMessage());
+            return null;
+        }
     }
-}
 
     private void simularMontagem() {
-        montarEAtualizarSaida(); 
+        montarEAtualizarSaida();
     }
-    
-  
+
     private void carregarDiretoNoExecutor(ActionEvent e) {
         if (interfacePrincipal == null) {
-            exibirErro("Erro de Conexão", "A interface principal do simulador não foi conectada. Use o botão 'Abrir Montador' na interface principal.");
+            exibirErro("Erro de Conexão",
+                    "A interface principal do simulador não foi conectada. Use o botão 'Abrir Montador' na interface principal.");
             return;
         }
-        
-        
-        String objectCode = montarEAtualizarSaida(); 
-        
-        if (objectCode == null || objectCode.contains("ERRO")) { 
-            return; 
+
+        String objectCode = montarEAtualizarSaida();
+        if (objectCode == null || objectCode.contains("ERRO")) {
+            return;
         }
-        
+
         try {
-            
-            interfacePrincipal.carregarProgramaMontado(objectCode); 
-            
-            JOptionPane.showMessageDialog(this, 
-                "Código objeto carregado no simulador principal com sucesso!", 
-                "Carregamento Concluído", 
-                JOptionPane.INFORMATION_MESSAGE);
-            
+            interfacePrincipal.carregarProgramaMontado(objectCode);
+
+            JOptionPane.showMessageDialog(this,
+                    "Código objeto carregado no simulador principal com sucesso!",
+                    "Carregamento Concluído",
+                    JOptionPane.INFORMATION_MESSAGE);
+
         } catch (Exception ex) {
             exibirErro("Erro ao Carregar", "Não foi possível carregar o programa no Executor. Detalhes: " + ex.getMessage());
         }
@@ -202,25 +263,21 @@ private String montarEAtualizarSaida() {
     }
 
     private void salvarArquivoObjeto(ActionEvent e) {
-        String conteudo = saidaObjeto.getText().trim();
-        if (conteudo.isEmpty() || conteudo.contains("ERRO")) {
-            exibirErro("Nada para salvar", "Execute a montagem primeiro ou corrija os erros.");
+        String objectCode = saidaObjeto.getText();
+        if (objectCode.trim().isEmpty()) {
+            exibirErro("Nada para salvar", "Nenhum código objeto foi gerado ainda.");
             return;
         }
 
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Salvar código-objeto (.txt)"); 
-        chooser.setSelectedFile(new java.io.File("programa.txt"));
-        chooser.setFileFilter(new FileNameExtensionFilter("Arquivos de Texto (.txt)", "txt")); // Filtro para TXT
-        
+        chooser.setDialogTitle("Salvar código objeto como...");
+        chooser.setFileFilter(new FileNameExtensionFilter("Arquivos Texto", "txt"));
         if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
-                String caminho = chooser.getSelectedFile().getAbsolutePath();
-                if (!caminho.toLowerCase().endsWith(".txt")) caminho += ".txt"; // Garante a extensão .txt
-                Files.writeString(Paths.get(caminho), conteudo);
-                statusLabel.setText("Arquivo salvo: " + caminho);
+                Files.writeString(chooser.getSelectedFile().toPath(), objectCode);
+                statusLabel.setText("Arquivo salvo: " + chooser.getSelectedFile().getName());
             } catch (IOException ex) {
-                exibirErro("Erro ao salvar", "Não foi possível escrever o arquivo: " + ex.getMessage());
+                exibirErro("Erro ao salvar", "Não foi possível salvar o arquivo.");
             }
         }
     }
@@ -236,10 +293,6 @@ private String montarEAtualizarSaida() {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try { FlatLightLaf.setup(); } catch (Exception ignored) {}
-            
-            new InterfaceMontador().setVisible(true); 
-        });
+        SwingUtilities.invokeLater(() -> new InterfaceMontador().setVisible(true));
     }
 }

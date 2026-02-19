@@ -114,7 +114,7 @@ public class MontadorSICXE {
 
     private static final Set<String> diretivas = new HashSet<>(Arrays.asList(
             
-        "START", "END", "BYTE", "WORD", "RESB", "RESW", "BASE", "NOBASE", "EXTDEF", "EXTREF"
+        "START", "END", "BYTE", "WORD", "RESB", "RESW", "BASE", "NOBASE", "EXTDEF", "EXTREF", "LTORG"
             
     ));
 
@@ -167,7 +167,28 @@ public class MontadorSICXE {
         }
     }
 
+
+    private static class Literal {
+
+        String nome;          // ex: =X'F1'
+        String especificacao; // ex: X'F1'  (sem o '=')
+        String operacao;      // BYTE ou WORD
+        String operando;      // operando para BYTE/WORD
+        int endereco = -1;
+        int tamanho = 0;
+
+        Literal(String nome, String especificacao, String operacao, String operando, int tamanho) {
+            this.nome = nome;
+            this.especificacao = especificacao;
+            this.operacao = operacao;
+            this.operando = operando;
+            this.tamanho = tamanho;
+        }
+    }
+
+
     private Map<String, Simbolo> tabelaSimbolos;
+    private final LinkedHashMap<String, Literal> tabelaLiterais = new LinkedHashMap<>();
     private List<String> erros;
     private List<LinhaMontagem> linhas;
 
@@ -202,6 +223,8 @@ public class MontadorSICXE {
         referenciasExternas.clear();
         registrosModificacao.clear();
         
+        tabelaLiterais.clear();
+        
     }
 
     public ResultadoMontagem montar(List<String> codigoFonte) {
@@ -235,6 +258,9 @@ public class MontadorSICXE {
             linha.operacao = partes.operacao;
             linha.operando = partes.operando;
 
+            String nomeLiteral = extrairNomeLiteral(partes.operando);
+            registrarLiteralSeNecessario(nomeLiteral, linha.numeroLinha);
+
             String operacao = partes.operacao;
 
             if ("START".equals(operacao)) {
@@ -262,6 +288,29 @@ public class MontadorSICXE {
                 contadorLocalizacao = 0;
                 linha.endereco = contadorLocalizacao;
                 
+            }
+
+
+            // Se houver literais pendentes, tente alocar antes de uma reserva grande (RESB/RESW),
+            // para evitar que os literais fiquem muito distantes das referências (PC-relativo).
+            if (("RESB".equals(operacao) || "RESW".equals(operacao)) && !tabelaLiterais.isEmpty()) {
+
+                boolean pendente = false;
+                for (Literal lit : tabelaLiterais.values()) {
+                    if (lit.endereco < 0) { pendente = true; break; }
+                }
+
+                if (pendente) {
+                    int qtd = interpretarNumero(partes.operando, linha.numeroLinha);
+                    int bytesReserva = "RESW".equals(operacao) ? 3 * Math.max(0, qtd) : Math.max(0, qtd);
+
+                    // limiar simples: só desloca antes de reservas realmente grandes
+                    if (bytesReserva >= 2048) {
+                        alocarLiteraisAqui();
+                        // o endereço desta linha muda porque o LC avançou com o pool de literais
+                        linha.endereco = contadorLocalizacao;
+                    }
+                }
             }
 
             if (partes.rotulo != null && !partes.rotulo.isBlank()) {
@@ -292,12 +341,15 @@ public class MontadorSICXE {
             }
 
             if (diretivas.contains(operacao)) {
-                
+
+                if ("LTORG".equals(operacao)) {
+                    alocarLiteraisAqui();
+                    continue;
+                }
                 contadorLocalizacao += tamanhoDiretiva(operacao, partes.operando, linha.numeroLinha);
                 continue;
-                
-            }
 
+            }
             if (ehInstrucao(operacao)) {
                 
                 boolean estendido = operacao.startsWith("+");
@@ -322,6 +374,8 @@ public class MontadorSICXE {
             adicionarErro(linha.numeroLinha, "Operação inválida: " + operacao);
             
         }
+
+        alocarLiteraisAqui();
 
         tamanhoPrograma = contadorLocalizacao - enderecoInicial;
         
@@ -401,7 +455,6 @@ public class MontadorSICXE {
             }
         }
     }
-
     private String gerarCodigoInstrucao(String operacao, String operando, int enderecoInstrucao, int numeroLinha) {
        
         boolean estendido = operacao.startsWith("+");
@@ -500,6 +553,7 @@ public class MontadorSICXE {
         }
 
         Integer numeroImediato = tentarInterpretarNumero(oper);
+        Integer enderecoExpressao = interpretarExpressaoRelativa(oper, enderecoInstrucao, numeroLinha);
 
         if (estendido) {
     
@@ -508,11 +562,24 @@ public class MontadorSICXE {
             int enderecoAlvo = 0;
             boolean ehExterno = referenciasExternas.contains(oper);
 
-            if (numeroImediato != null) {
-                
-                enderecoAlvo = numeroImediato;
+            if (enderecoExpressao != null) {
+
+
+                enderecoAlvo = enderecoExpressao;
+
+
                 ehExterno = false;
-                
+
+
+            } else if (numeroImediato != null) {
+
+
+                enderecoAlvo = numeroImediato;
+
+
+                ehExterno = false;
+
+
             } else if (!ehExterno) {
                 
                 Simbolo s = tabelaSimbolos.get(oper);
@@ -567,17 +634,20 @@ public class MontadorSICXE {
             return String.format("%02X%02X%02X", byte1, byte2, byte3);
             
         }
+        int enderecoAlvo;
 
-        Simbolo simbolo = tabelaSimbolos.get(oper);
-        
-        if (simbolo == null) {
-            
-            adicionarErro(numeroLinha, "Símbolo não definido: " + oper);
-            simbolo = new Simbolo(oper, 0);
-            
+        if (enderecoExpressao != null) {
+            enderecoAlvo = enderecoExpressao;
+        } else {
+            Simbolo simbolo = tabelaSimbolos.get(oper);
+
+            if (simbolo == null) {
+                adicionarErro(numeroLinha, "Símbolo não definido: " + oper);
+                simbolo = new Simbolo(oper, 0);
+            }
+
+            enderecoAlvo = simbolo.endereco;
         }
-
-        int enderecoAlvo = simbolo.endereco;
         int pc = enderecoInstrucao + 3;
 
         int deslocamento = enderecoAlvo - pc;
@@ -613,7 +683,6 @@ public class MontadorSICXE {
         return "";
         
     }
-   
     private String gerarCodigoWord(String operando, int enderecoPalavra, int numeroLinha) {
         
         String oper = (operando == null) ? "" : operando.trim();
@@ -800,11 +869,15 @@ public class MontadorSICXE {
     }
 
     private List<RegistroTexto> montarRegistrosTexto() {
-        
+
         List<RegistroTexto> lista = new ArrayList<>();
         RegistroTexto atual = null;
 
-        for (LinhaMontagem linha : linhas) {
+        // Garante que os registros texto saiam em ordem crescente de endereço
+        List<LinhaMontagem> linhasOrdenadas = new ArrayList<>(linhas);
+        linhasOrdenadas.sort(Comparator.comparingInt(l -> l.endereco));
+
+        for (LinhaMontagem linha : linhasOrdenadas) {
             
             if (linha.codigoObjeto == null || linha.codigoObjeto.isBlank()) continue;
 
@@ -829,7 +902,6 @@ public class MontadorSICXE {
         if (atual != null && atual.tamanhoEmBytes() > 0) lista.add(atual);
         return lista;
     }
-
     private String gerarListagem() {
         
         StringBuilder sb = new StringBuilder();
@@ -928,6 +1000,91 @@ public class MontadorSICXE {
 
         return linha.trim();
     }
+
+
+    private static String extrairNomeLiteral(String operando) {
+        if (operando == null) return null;
+        String op = operando.trim();
+        if (op.isEmpty()) return null;
+
+        // remove prefixos de endereçamento
+        if (op.startsWith("#") || op.startsWith("@")) op = op.substring(1).trim();
+
+        // remove indexação
+        if (op.toUpperCase().endsWith(",X")) op = op.substring(0, op.length() - 2).trim();
+
+        if (op.startsWith("=") && op.length() > 1) return op;
+        return null;
+    }
+
+    private void registrarLiteralSeNecessario(String nomeLiteral, int numeroLinha) {
+        if (nomeLiteral == null) return;
+        if (tabelaLiterais.containsKey(nomeLiteral)) return;
+
+        String especificacao = nomeLiteral.substring(1).trim(); // sem '='
+
+        if (especificacao.startsWith("X'") || especificacao.startsWith("C'")) {
+            int tam = tamanhoByte(especificacao, numeroLinha);
+            tabelaLiterais.put(nomeLiteral, new Literal(nomeLiteral, especificacao, "BYTE", especificacao, tam));
+            return;
+        }
+
+        // fallback: literal numérico vira WORD (3 bytes)
+        Integer n = tentarInterpretarNumero(especificacao);
+        if (n != null) {
+            tabelaLiterais.put(nomeLiteral, new Literal(nomeLiteral, especificacao, "WORD", especificacao, 3));
+            return;
+        }
+
+        adicionarErro(numeroLinha, "Literal inválido: " + nomeLiteral);
+    }
+
+    private void alocarLiteraisAqui() {
+        if (tabelaLiterais.isEmpty()) return;
+
+        int numLinha = linhas.size() + 1;
+
+        for (Literal lit : tabelaLiterais.values()) {
+            if (lit.endereco >= 0) continue;
+
+            lit.endereco = contadorLocalizacao;
+
+            // registra o literal como "símbolo" para que possa ser usado no operando (ex: =X'F1')
+            if (!tabelaSimbolos.containsKey(lit.nome)) {
+                tabelaSimbolos.put(lit.nome, new Simbolo(lit.nome, lit.endereco));
+            }
+
+            String original = String.format("        %s    %s    ; literal %s", lit.operacao, lit.operando, lit.nome);
+
+            LinhaMontagem linhaLit = new LinhaMontagem(numLinha++, original, lit.endereco);
+            linhaLit.rotulo = null;
+            linhaLit.operacao = lit.operacao;
+            linhaLit.operando = lit.operando;
+
+            linhas.add(linhaLit);
+
+            contadorLocalizacao += lit.tamanho;
+        }
+    }
+
+    private Integer interpretarExpressaoRelativa(String oper, int enderecoInstrucao, int numeroLinha) {
+        if (oper == null) return null;
+        String t = oper.trim();
+        if (t.isEmpty()) return null;
+
+        if (t.equals("*")) return enderecoInstrucao;
+
+        // aceita *+N ou *-N (N pode ser decimal, 0x.. ou ..H)
+        if (t.startsWith("*+") || t.startsWith("*-")) {
+            char sinal = t.charAt(1);
+            String num = t.substring(2).trim();
+            int v = interpretarNumero(num, numeroLinha);
+            return (sinal == '+') ? (enderecoInstrucao + v) : (enderecoInstrucao - v);
+        }
+
+        return null;
+    }
+
 
     private static List<String> separarListaSimbolos(String texto) {
         if (texto == null) return List.of();
