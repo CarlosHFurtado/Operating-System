@@ -15,7 +15,6 @@ import java.util.List;
 
 public class InterfaceMontador extends JFrame {
 
-    // Cores e estilo (mesmo padrão do Ligador)
     private static final Color AZUL_FUNDO = new Color(63, 84, 114);
     private static final Color AZUL_FUNDO_CAIXA = new Color(78, 101, 128);
     private static final Color BRANCO = Color.WHITE;
@@ -51,7 +50,6 @@ public class InterfaceMontador extends JFrame {
         root.setBackground(AZUL_FUNDO);
         setContentPane(root);
 
-        // Barra de botões (estilo link, como no Ligador)
         JPanel barraBotoes = new JPanel(new BorderLayout());
         barraBotoes.setBackground(BRANCO);
         barraBotoes.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
@@ -79,7 +77,6 @@ public class InterfaceMontador extends JFrame {
         topo.setBackground(BRANCO);
         topo.add(barraBotoes, BorderLayout.NORTH);
 
-        // Centro: editor + saída
         JPanel centro = new JPanel(new BorderLayout(12, 12));
         centro.setBackground(AZUL_FUNDO);
         centro.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
@@ -115,7 +112,6 @@ public class InterfaceMontador extends JFrame {
 
         centro.add(split, BorderLayout.CENTER);
 
-        // Rodapé / status
         statusLabel = new JLabel("Pronto para montar.");
         statusLabel.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         statusLabel.setForeground(BRANCO);
@@ -129,7 +125,6 @@ public class InterfaceMontador extends JFrame {
         root.add(centro, BorderLayout.CENTER);
         root.add(rodape, BorderLayout.SOUTH);
 
-        // Ações
         btnCarregar.addActionListener(this::carregarArquivoAssembly);
         btnMontar.addActionListener(e -> simularMontagem());
         btnSalvar.addActionListener(this::salvarArquivoObjeto);

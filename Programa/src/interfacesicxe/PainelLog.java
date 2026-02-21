@@ -10,13 +10,12 @@ public class PainelLog extends JPanel {
     private static final Color COR_DETALHE = new Color(6, 8, 11);       
     private static final Color COR_TEXTO = Color.WHITE;
 
-    // Instância única para acesso global
     private static PainelLog instance;
 
     private JTextArea areaLog;
 
     public PainelLog() {
-        // Salva a instância para uso global
+   
         instance = this;
 
         setLayout(new BorderLayout());
@@ -47,18 +46,15 @@ public class PainelLog extends JPanel {
         adicionarMensagem("Aguardando carregamento do programa...");
     }
 
-    // Método para adicionar mensagens na interface
     public void adicionarMensagem(String msg) {
         areaLog.append("> " + msg + "\n");
         areaLog.setCaretPosition(areaLog.getDocument().getLength());
     }
 
-    // Método estático para logar de qualquer classe
     public static void logGlobal(String msg) {
         if (instance != null) {
             instance.adicionarMensagem(msg);
         }
-        // Se instance for null (ex: log antes da criação do painel), silenciosamente ignora
     }
 
     public void limpar() {

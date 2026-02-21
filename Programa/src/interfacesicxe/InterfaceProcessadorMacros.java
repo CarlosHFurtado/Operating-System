@@ -58,9 +58,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(20, 15, 0, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        
-        // ===== Arquivo de entrada =====
+     
         JLabel lblEntrada = new JLabel("Arquivo de Entrada:");
         lblEntrada.setForeground(textoBranco);
 
@@ -82,7 +80,6 @@ public class InterfaceProcessadorMacros extends JFrame {
         gbc.weightx = 0;
         painelCentral.add(btnSelecionar, gbc);
 
-        // ===== Botão Processar =====
         btnProcessar = new JButton("Processar");
         btnProcessar.setEnabled(false);
         btnProcessar.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -92,8 +89,7 @@ public class InterfaceProcessadorMacros extends JFrame {
         gbc.gridwidth = 3;
         painelCentral.add(btnProcessar, gbc);
         gbc.gridwidth = 1;
-
-        
+       
         JLabel lblSaida = new JLabel("Arquivo de Saída:");
         lblSaida.setForeground(textoBranco);
 
@@ -119,9 +115,7 @@ public class InterfaceProcessadorMacros extends JFrame {
 
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(true);
-       
-
-      
+ 
         btnSelecionar.addActionListener(this::selecionarArquivo);
         btnProcessar.addActionListener(this::executarProcessamento);
         btnAbrirSaida.addActionListener(e -> abrirSaida());
@@ -140,8 +134,7 @@ public class InterfaceProcessadorMacros extends JFrame {
             File arquivo = chooser.getSelectedFile();
             campoArquivoEntrada.setText(arquivo.getAbsolutePath());
             btnProcessar.setEnabled(true);
-
-           
+          
             arquivoSaidaAtual = null;
             campoArquivoSaida.setText("");
             btnAbrirSaida.setEnabled(false);

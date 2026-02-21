@@ -70,12 +70,10 @@ public class InterfaceSICXE extends JFrame {
         toolBar.addSeparator();
         toolBar.add(btnSair);
 
-        // Abre janelas
         btnAbrirMontador.addActionListener(e -> new InterfaceMontador(this).setVisible(true));
         btnProcessadorMacros.addActionListener(e -> new InterfaceProcessadorMacros().setVisible(true));
         btnLigador.addActionListener(e -> new InterfaceLigador(this).setVisible(true));
 
-        // Carregar HEX bruto (não é OBJ SIC/XE)
         btnCarregarHex.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Selecione um arquivo (.txt) com bytes HEX (sem H/T/M/E)");
@@ -162,10 +160,6 @@ public class InterfaceSICXE extends JFrame {
         painelRegistradores.atualizar();
     }
 
-    /**
-     * Esse é o "Carregador Absoluto" do seu simulador:
-     * Recebe a imagem final de memória (vinda do ligador-relocador) e o PC.
-     */
     public void carregarImagemDeMemoria(byte[] imagem, int pc) {
         if (imagem == null) {
             JOptionPane.showMessageDialog(this, "Imagem de memória nula.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -205,7 +199,6 @@ public class InterfaceSICXE extends JFrame {
         return;
     }
 
-    // Atualiza a interface
     painelMemoria.atualizar();
     painelRegistradores.atualizar();
 

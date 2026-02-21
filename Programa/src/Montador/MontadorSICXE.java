@@ -170,10 +170,10 @@ public class MontadorSICXE {
 
     private static class Literal {
 
-        String nome;          // ex: =X'F1'
-        String especificacao; // ex: X'F1'  (sem o '=')
-        String operacao;      // BYTE ou WORD
-        String operando;      // operando para BYTE/WORD
+        String nome;         
+        String especificacao; 
+        String operacao;      
+        String operando;      
         int endereco = -1;
         int tamanho = 0;
 
@@ -290,9 +290,6 @@ public class MontadorSICXE {
                 
             }
 
-
-            // Se houver literais pendentes, tente alocar antes de uma reserva grande (RESB/RESW),
-            // para evitar que os literais fiquem muito distantes das referências (PC-relativo).
             if (("RESB".equals(operacao) || "RESW".equals(operacao)) && !tabelaLiterais.isEmpty()) {
 
                 boolean pendente = false;
@@ -304,10 +301,8 @@ public class MontadorSICXE {
                     int qtd = interpretarNumero(partes.operando, linha.numeroLinha);
                     int bytesReserva = "RESW".equals(operacao) ? 3 * Math.max(0, qtd) : Math.max(0, qtd);
 
-                    // limiar simples: só desloca antes de reservas realmente grandes
                     if (bytesReserva >= 2048) {
                         alocarLiteraisAqui();
-                        // o endereço desta linha muda porque o LC avançou com o pool de literais
                         linha.endereco = contadorLocalizacao;
                     }
                 }
@@ -873,7 +868,6 @@ public class MontadorSICXE {
         List<RegistroTexto> lista = new ArrayList<>();
         RegistroTexto atual = null;
 
-        // Garante que os registros texto saiam em ordem crescente de endereço
         List<LinhaMontagem> linhasOrdenadas = new ArrayList<>(linhas);
         linhasOrdenadas.sort(Comparator.comparingInt(l -> l.endereco));
 
@@ -1007,10 +1001,8 @@ public class MontadorSICXE {
         String op = operando.trim();
         if (op.isEmpty()) return null;
 
-        // remove prefixos de endereçamento
         if (op.startsWith("#") || op.startsWith("@")) op = op.substring(1).trim();
 
-        // remove indexação
         if (op.toUpperCase().endsWith(",X")) op = op.substring(0, op.length() - 2).trim();
 
         if (op.startsWith("=") && op.length() > 1) return op;
@@ -1021,7 +1013,7 @@ public class MontadorSICXE {
         if (nomeLiteral == null) return;
         if (tabelaLiterais.containsKey(nomeLiteral)) return;
 
-        String especificacao = nomeLiteral.substring(1).trim(); // sem '='
+        String especificacao = nomeLiteral.substring(1).trim();
 
         if (especificacao.startsWith("X'") || especificacao.startsWith("C'")) {
             int tam = tamanhoByte(especificacao, numeroLinha);
@@ -1029,7 +1021,6 @@ public class MontadorSICXE {
             return;
         }
 
-        // fallback: literal numérico vira WORD (3 bytes)
         Integer n = tentarInterpretarNumero(especificacao);
         if (n != null) {
             tabelaLiterais.put(nomeLiteral, new Literal(nomeLiteral, especificacao, "WORD", especificacao, 3));
@@ -1049,7 +1040,6 @@ public class MontadorSICXE {
 
             lit.endereco = contadorLocalizacao;
 
-            // registra o literal como "símbolo" para que possa ser usado no operando (ex: =X'F1')
             if (!tabelaSimbolos.containsKey(lit.nome)) {
                 tabelaSimbolos.put(lit.nome, new Simbolo(lit.nome, lit.endereco));
             }
@@ -1074,7 +1064,6 @@ public class MontadorSICXE {
 
         if (t.equals("*")) return enderecoInstrucao;
 
-        // aceita *+N ou *-N (N pode ser decimal, 0x.. ou ..H)
         if (t.startsWith("*+") || t.startsWith("*-")) {
             char sinal = t.charAt(1);
             String num = t.substring(2).trim();

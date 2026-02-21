@@ -17,11 +17,9 @@ public class PainelControle extends JPanel {
     private final Executor executor;
     private final InterfaceSICXE framePai;
 
-    // Entrada RD (simulada)
     private JTextField campoEntradaHex;
     private JButton btnEnviarRD;
 
-    // Se RD acontecer durante "Executar", retomamos automaticamente após enviar
     private boolean retomarAutomaticoAposRD = false;
 
     public PainelControle(Executor executor, InterfaceSICXE framePai) {
@@ -59,9 +57,8 @@ public class PainelControle extends JPanel {
         estilizarBotao(btnEnviarRD);
 
         btnEnviarRD.addActionListener(e -> enviarEntradaRD());
-        campoEntradaHex.addActionListener(e -> enviarEntradaRD()); // Enter envia
+        campoEntradaHex.addActionListener(e -> enviarEntradaRD()); 
 
-        // Começa desabilitado: só habilita quando o executor parar em RD
         campoEntradaHex.setEnabled(false);
         btnEnviarRD.setEnabled(false);
 
@@ -95,7 +92,7 @@ public class PainelControle extends JPanel {
     }
 
     private void executarPasso() {
-        // Se estiver aguardando RD, não executa mais nada sem enviar entrada
+        
         if (executor.estaAguardandoEntradaRD()) {
             habilitarEntradaRD(false);
             return;
@@ -106,7 +103,7 @@ public class PainelControle extends JPanel {
 
         if (!continua) {
             if (executor.estaAguardandoEntradaRD()) {
-                habilitarEntradaRD(false); // passo-a-passo: não retoma automático
+                habilitarEntradaRD(false); 
             } else {
                 JOptionPane.showMessageDialog(this, "Fim do programa.");
             }
@@ -114,7 +111,7 @@ public class PainelControle extends JPanel {
     }
 
     private void executarPrograma() {
-        // Se estiver aguardando RD, não inicia thread nova: só habilita entrada
+       
         if (executor.estaAguardandoEntradaRD()) {
             habilitarEntradaRD(true);
             return;
@@ -127,7 +124,7 @@ public class PainelControle extends JPanel {
                 framePai.atualizarTodosPaineis();
 
                 if (executor.estaAguardandoEntradaRD()) {
-                    habilitarEntradaRD(true); // executar: retoma automático após enviar
+                    habilitarEntradaRD(true); 
                     return;
                 }
 
@@ -171,7 +168,7 @@ public class PainelControle extends JPanel {
 
             framePai.atualizarTodosPaineis();
 
-            // Se estava no modo "Executar", retoma automaticamente
+          
             if (retomarAutomaticoAposRD) {
                 retomarAutomaticoAposRD = false;
                 executarPrograma();

@@ -39,12 +39,12 @@ public final class Ligador {
 
     private static final class Modulo {
         String nome = "";
-        int startRel = 0;     // aqui vamos guardar o START do H (absoluto do módulo)
+        int startRel = 0;     
         int length = 0;
         int csaddr = 0;
-        Integer execRel = null; // E relativo ao startRel (após parse)
+        Integer execRel = null; 
 
-        // D: agora guardamos offsets relativos ao startRel
+        
         Map<String, Integer> definicoesRel = new LinkedHashMap<>();
         Set<String> referencias = new LinkedHashSet<>();
 
@@ -53,13 +53,13 @@ public final class Ligador {
     }
 
     private static final class TextRec {
-        int startRel;   // offset relativo ao start do módulo
+        int startRel;  
         byte[] bytes;
         TextRec(int startRel, byte[] bytes) { this.startRel = startRel; this.bytes = bytes; }
     }
 
     private static final class ModRec {
-        int addrRel;     // offset relativo ao start do módulo
+        int addrRel;     
         int nibbles;
         char sinal;
         String simbolo;
@@ -94,7 +94,6 @@ public final class Ligador {
 
         int csaddr = (modo == Modo.LIGADOR_RELOCADOR) ? enderecoCarga : 0;
 
-        // PASSO 1: ESTAB
         for (Modulo m : modulos) {
             m.csaddr = csaddr;
 
@@ -119,7 +118,6 @@ public final class Ligador {
             csaddr += m.length;
         }
 
-        // PASSO 2: valida R
         for (Modulo m : modulos) {
             for (String ref : m.referencias) {
                 if (!estab.containsKey(ref)) {
@@ -197,11 +195,9 @@ public final class Ligador {
         if (nome.length() > 6) nome = nome.substring(0, 6);
         nome = String.format("%-6s", nome);
 
-        // tamanho pelo header
         int tamanhoHeader = 0;
         for (Modulo m : modulos) tamanhoHeader += m.length;
 
-        // tamanho real pelo último T (para não truncar)
         int maxEnd = 0;
         for (Modulo m : modulos) {
             for (TextRec t : m.textos) {
@@ -268,7 +264,6 @@ public final class Ligador {
                     escreverCampoNibblesImagem(imagem, addrCampo, mr.nibbles, novo);
                 }
 
-                // mantém M simples (relocação) para o carregador relocador
                 modsFinais.add(new ModRec(addrCampo, mr.nibbles, (char) 0, null));
             }
         }
@@ -322,7 +317,6 @@ public final class Ligador {
         return 0;
     }
 
-    // ======= PARSE CORRIGIDO: tudo vira RELATIVO ao H.start =======
     private List<Modulo> parseModulos(List<String> objetos) {
         List<Modulo> out = new ArrayList<>();
 
@@ -343,7 +337,7 @@ public final class Ligador {
                     case 'H' -> {
                         if (l.length() < 19) { erro("H inválido: " + l); continue; }
                         m.nome = l.substring(1, 7).trim();
-                        m.startRel = Integer.parseInt(l.substring(7, 13), 16); // START ABS do módulo
+                        m.startRel = Integer.parseInt(l.substring(7, 13), 16); 
                         m.length = Integer.parseInt(l.substring(13, 19), 16);
                     }
 
@@ -542,7 +536,6 @@ public final class Ligador {
         int tamanhoHeader = 0;
         for (Modulo m : modulos) tamanhoHeader += m.length;
 
-        // garante que cabe até o último T também (robustez)
         int maxEnd = 0;
         for (Modulo m : modulos) {
             for (TextRec t : m.textos) {

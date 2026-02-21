@@ -91,7 +91,7 @@ public class TelaColaboradores extends JDialog {
             gbc.anchor = GridBagConstraints.WEST;
             gbc.weightx = 1.0;
             gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.insets = new Insets(10, 40, 10, 0); // margem esquerda maior
+            gbc.insets = new Insets(10, 40, 10, 0); 
 
             JLabel lbl = new JLabel(nome);
             lbl.setForeground(FG);
@@ -102,7 +102,7 @@ public class TelaColaboradores extends JDialog {
             gbc.anchor = GridBagConstraints.EAST;
             gbc.weightx = 0.0;
             gbc.fill = GridBagConstraints.NONE;
-            gbc.insets = new Insets(10, 0, 10, 40); // margem direita maior
+            gbc.insets = new Insets(10, 0, 10, 40); 
 
             JButton btn = createGithubButton();
             btn.addActionListener(e -> abrirNoNavegador(url));

@@ -122,7 +122,7 @@ public class PainelMemoria extends JPanel {
 
     public void alternarModoEdicao() {
         if (modoEdicao) {
-            finalizarEdicaoTabela(); // Garante que a edição seja salva antes de sair
+            finalizarEdicaoTabela(); 
         }
         modoEdicao = !modoEdicao;
         atualizar();

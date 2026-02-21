@@ -1,7 +1,5 @@
 package Instrucoes;
 
-// @author Dienifer Ledebuhr
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects; 
