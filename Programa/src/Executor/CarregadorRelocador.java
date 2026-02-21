@@ -1,4 +1,3 @@
-// CarregadorRelocador.java
 package Executor;
 
 import java.util.*;
@@ -11,20 +10,26 @@ public class CarregadorRelocador {
     private int enderecoCarga;
 
     public CarregadorRelocador(Memoria memoria, Registradores registradores) {
+        
         this.memoria = memoria;
         this.registradores = registradores;
         this.erros = new ArrayList<>();
         this.enderecoCarga = 0;
+        
     }
 
     public void setEnderecoCarga(int enderecoCarga) {
+        
         this.enderecoCarga = enderecoCarga;
+        
     }
 
     public ResultadoCarregamento carregar(String codigoObjeto) {
+        
         erros.clear();
 
         try {
+            
             List<RegistroTexto> textos = new ArrayList<>();
             List<RegistroModificacao> modificacoes = new ArrayList<>();
 
@@ -42,25 +47,34 @@ public class CarregadorRelocador {
                 char tipo = linha.charAt(0);
 
                 switch (tipo) {
+                    
                     case 'H':
+                        
                         if (linha.length() < 19) {
+                            
                             erros.add("Header inválido: " + linha);
                             break;
+                            
                         }
+                        
                         enderecoInicio = hexParaInt(linha.substring(7, 13));
                         tamanhoPrograma = hexParaInt(linha.substring(13, 19));
                         headerLido = true;
                         break;
 
                     case 'T':
+                        
                         textos.add(parseRegistroTexto(linha));
                         break;
+                        
 
                     case 'M':
+                        
                         modificacoes.add(parseRegistroModificacao(linha));
                         break;
 
                     case 'E':
+                        
                         if (linha.length() >= 7) {
                             enderecoExecucao = hexParaInt(linha.substring(1, 7));
                         } else {
@@ -69,57 +83,70 @@ public class CarregadorRelocador {
                         break;
 
                     default:
+                        
                         erros.add("Tipo desconhecido: " + tipo);
                         break;
+                        
                 }
             }
 
             if (!headerLido) {
+                
                 erros.add("Header (H) não encontrado no código objeto.");
+                
             }
 
             if (enderecoExecucao < 0) {
-                // sem E => início do programa
+               
                 enderecoExecucao = enderecoInicio;
+                
             }
 
-            // Valida faixa após relocação
             long fimAbsoluto = (long) enderecoCarga + (long) tamanhoPrograma;
+            
             if (enderecoCarga < 0 || fimAbsoluto > memoria.getMem().length) {
+                
                 erros.add("Programa relocável excede memória: carga=" + String.format("%06X", enderecoCarga) +
                         " fim=" + String.format("%06X", (int) fimAbsoluto));
+                
             }
 
             if (!erros.isEmpty()) {
+                
                 return new ResultadoCarregamento(0, 0, 0, erros);
+                
             }
 
-            // Carrega textos
             for (RegistroTexto t : textos) {
+                
                 int enderecoAbsoluto = enderecoCarga + (t.endereco - enderecoInicio);
                 carregarTexto(t, enderecoAbsoluto);
+                
             }
 
-            // Aplica modificações (relocação)
             int fatorRelocacao = enderecoCarga - enderecoInicio;
+            
             for (RegistroModificacao m : modificacoes) {
+                
                 int enderecoCampo = enderecoCarga + (m.endereco - enderecoInicio);
                 aplicarModificacao(m, enderecoCampo, fatorRelocacao);
+                
             }
 
-            // Ajusta PC
             int enderecoExecucaoAbsoluto = enderecoCarga + (enderecoExecucao - enderecoInicio);
+            
             registradores.setValor("PC", enderecoExecucaoAbsoluto);
             registradores.setValor("SW", 0);
 
-            // Para o Executor: início absoluto é o endereço de carga
             int inicioProgramaAbsoluto = enderecoCarga;
 
             return new ResultadoCarregamento(enderecoExecucaoAbsoluto, inicioProgramaAbsoluto, tamanhoPrograma, erros);
 
         } catch (Exception e) {
+            
             erros.add("Erro no carregamento: " + e.getMessage());
             return new ResultadoCarregamento(0, 0, 0, erros);
+            
         }
     }
 
@@ -163,7 +190,6 @@ public class CarregadorRelocador {
             String simbolo = resto.substring(1).trim();
             return new RegistroModificacao(endereco, tamanhoNibbles, sinal, simbolo);
         } else {
-            // sem símbolo => relocação simples pelo fatorRelocacao
             return new RegistroModificacao(endereco, tamanhoNibbles, '+', null);
         }
     }
@@ -174,10 +200,6 @@ public class CarregadorRelocador {
         }
     }
 
-    /**
-     * Corrigido: aplica modificação em N half-bytes preservando o high-nibble quando N é ímpar.
-     * Essencial para M...05 (20 bits) no formato 4 (high-nibble do 1º byte tem xbpe).
-     */
     private void aplicarModificacao(RegistroModificacao mod, int enderecoCampo, int fatorRelocacao) {
 
         int nibbles = mod.tamanhoNibbles;
@@ -188,15 +210,14 @@ public class CarregadorRelocador {
         if (mod.simbolo == null) {
             ajuste = fatorRelocacao;
             if (mod.sinal == '-') ajuste = -ajuste;
-        } else {
-            // Aqui entraria ESTAB se vocês suportarem símbolos no loader.
+        } else {            
             ajuste = 0;
         }
 
         long mascara = mascaraNibbles(nibbles);
 
         if (odd) {
-            // Preserva o high nibble do primeiro byte
+            
             int primeiro = memoria.getByte(enderecoCampo) & 0xFF;
             int highNibblePreservado = primeiro & 0xF0;
 

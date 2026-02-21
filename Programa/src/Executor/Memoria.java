@@ -62,8 +62,6 @@ public class Memoria {
         
     }
 
-    // Obter um valor de 3 bytes
-
     public int getValor3Bytes(int pos) {
         
         if (pos < 0 || pos + 2 >= tamanho) {

@@ -1,4 +1,3 @@
-// Executor.java
 package Executor;
 
 import Instrucoes.Instrucao;
@@ -13,7 +12,6 @@ public class Executor {
     private int output;
     private boolean stop;
 
-    // Motivo de parada (para diferenciar FIM x RD aguardando entrada)
     public enum MotivoParada {
         NENHUM,
         PARADO_MANUAL,
@@ -31,16 +29,14 @@ public class Executor {
 
     private CarregadorAbsoluto carregadorAbsoluto;
     private CarregadorRelocador carregadorRelocador;
-
     private PainelLog painelLog;
 
-    // Faixa válida do programa carregado
     private boolean programaCarregado = false;
     private int inicioPrograma = -1;
-    private int fimPrograma = -1; // exclusivo
+    private int fimPrograma = -1;
 
     public Executor() {
-        this.memoria = new Memoria(1024 * 1024); // 1MB
+        this.memoria = new Memoria(1024 * 1024); 
         this.registradores = new Registradores();
         this.instrucoes = new TabelaOpcodes();
         this.output = -1;
@@ -65,10 +61,8 @@ public class Executor {
             return false;
         }
 
-        // Padrão do Beck: L=0 para permitir "fim do programa" via RSUB (retorno pra 000000)
         registradores.setValor("L", 0);
 
-        // Guarda faixa do programa para parar corretamente
         inicioPrograma = resultado.inicioPrograma;
         fimPrograma = resultado.inicioPrograma + resultado.tamanhoPrograma;
         programaCarregado = true;
@@ -133,7 +127,6 @@ public class Executor {
     }
 
     private void log(String msg) {
-        // Evita duplicação: PainelLog.logGlobal já escreve no painel (instância única)
         PainelLog.logGlobal(msg);
     }
 
@@ -143,13 +136,12 @@ public class Executor {
     }
 
     private int tamanhoInstrucaoF3F4(byte b1) {
-        // e-bit no segundo byte (0x10): 1 => formato 4, senão formato 3
         return ((b1 & 0x10) != 0) ? 4 : 3;
     }
 
     private void setCC(String condicao) {
         int sw = registradores.getValor("SW");
-        sw &= ~0x00E00000; // limpa bits de CC
+        sw &= ~0x00E00000; 
         switch (condicao) {
             case "=" -> sw |= 0x00200000;
             case ">" -> sw |= 0x00400000;
@@ -159,9 +151,6 @@ public class Executor {
         registradores.setValor("SW", sw);
     }
 
-    /**
-     * Executa até terminar (ou pausar em RD).
-     */
     public void executarPrograma() {
         int pcInicial = registradores.getValor("PC");
         log("DEBUG: PC inicial = " + String.format("%06X", pcInicial));
@@ -175,7 +164,6 @@ public class Executor {
 
             int pc = registradores.getValor("PC");
 
-            // Para quando sai da faixa do programa carregado
             if (pcForaDaFaixaDoPrograma(pc)) {
                 log("Programa finalizado: PC saiu da faixa do programa. PC=" +
                         String.format("%06X", pc) +
@@ -185,7 +173,6 @@ public class Executor {
                 break;
             }
 
-            // Precisamos ler pelo menos 3 bytes
             if (pc < 0 || pc >= memoria.getMem().length - 3) {
                 log("Programa finalizado: PC fora da memória (" + String.format("%06X", pc) + ").");
                 motivoParada = MotivoParada.PC_FORA_MEMORIA;
@@ -202,7 +189,6 @@ public class Executor {
             byte b1 = memoria.getByte(pc + 1);
             byte b2 = memoria.getByte(pc + 2);
 
-            // (opcional) heurística: área não inicializada
             if (b0 == 0 && b1 == 0 && b2 == 0) {
                 log("Execução encerrada: área não inicializada (00 00 00) em PC=" + String.format("%06X", pc));
                 motivoParada = MotivoParada.AREA_NAO_INICIALIZADA;
@@ -212,8 +198,6 @@ public class Executor {
             byte opcodeCompleto = b0;
             byte opcodeBase = (byte) (opcodeCompleto & 0xFC);
 
-            // IO (E/S simulada)
-            // TD (0xE0): sempre "pronto" no simulador => CC = "<"
             if (opcodeBase == (byte) 0xE0) { // TD
                 int tam = tamanhoInstrucaoF3F4(b1);
                 registradores.incrementar("PC", tam);
@@ -226,13 +210,13 @@ public class Executor {
                 log("RD: Leitura de Dispositivo. Execução pausada (aguardando entrada simulada).");
                 stop = true;
                 motivoParada = MotivoParada.AGUARDANDO_RD;
-                registradores.incrementar("PC", tam); // consome RD (F3/F4)
+                registradores.incrementar("PC", tam); 
                 break;
 
             } else if (opcodeBase == (byte) 0xDC) { // WD
                 int tam = tamanhoInstrucaoF3F4(b1);
                 int a = registradores.getValor("A") & 0xFFFFFF;
-                setOutput(a & 0xFF); // usa o byte baixo
+                setOutput(a & 0xFF); 
                 log(String.format("WD: Escrevendo 0x%02X (byte baixo de A) na saída.", (a & 0xFF)));
                 registradores.incrementar("PC", tam);
 
@@ -270,10 +254,6 @@ public class Executor {
         }
     }
 
-    /**
-     * Executa apenas uma instrução (modo passo-a-passo).
-     * Retorna true se pode continuar; false se deve parar (fim/erro/RD).
-     */
     public boolean executarPasso() {
         int pc = registradores.getValor("PC");
 
@@ -395,10 +375,6 @@ public class Executor {
         return motivoParada == MotivoParada.AGUARDANDO_RD;
     }
 
-    /**
-     * E/S simulada: injeta 1 byte lido (0..255) no byte menos significativo de A,
-     * preservando os 16 bits mais altos. Depois libera a execução.
-     */
     public void fornecerEntradaRD(int byteLido) {
         int v = byteLido & 0xFF;
         int a = registradores.getValor("A") & 0xFFFFFF;
@@ -412,9 +388,6 @@ public class Executor {
         log(String.format("RD: entrada simulada recebida (0x%02X) -> A(low)=0x%02X", v, v));
     }
 
-    /**
-     * Parada manual (botão Parar).
-     */
     public void parar() {
         stop = true;
         if (motivoParada == MotivoParada.NENHUM) {
