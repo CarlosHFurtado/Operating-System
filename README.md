@@ -2,7 +2,7 @@
 
 ***
 
-<img align="right" src="https://i.pinimg.com/1200x/27/fa/d1/27fad1c813e9f6ddb642d7e88c8eb923.jpg" alt="Imagem 1" style="border-radius: 10px; margin: 5px;" height="100">
+<img align="right" src="https://i.pinimg.com/originals/0a/7b/e7/0a7be7b9f24ce4dd9f6243476d03cf98.gif" alt="Imagem 1" style="border-radius: 10px; margin: 5px;" height="100">
 
 
 _Este repositório contém o projeto em desenvolvimento da disciplina de Programação de Sistemas que prevê a implementação do Computador Hipotético (SIC/XE)_
@@ -16,17 +16,17 @@ Para mais informações [Cique Aqui!](https://docs.google.com/document/d/176G9Yk
 
 ### _Etapas do Trabalho_
 ***
- _Primeira Etapa: Máquina Virtual_
+> √ - _Primeira Etapa: Máquina Virtual_
 
-> _Segunta Etapa: Montador_
+> √ - _Segunta Etapa: Montador_
 
-> _Terceira Etapa: Processador de Macro_
+> √ - _Terceira Etapa: Processador de Macro_
 
-> _Quarta Etapa: Ligador_
+> √ - _Quarta Etapa: Ligador_
  
-> _Quinta Etapa: Carregador_
+> √ - _Quinta Etapa: Carregador_
  
-> _Sexta Etapa: Trabalho Completo_
+> √ - _Sexta Etapa: Trabalho Completo_
 
 
 ### _Integrantes do grupo_
